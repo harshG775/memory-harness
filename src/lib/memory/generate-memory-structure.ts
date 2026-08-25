@@ -1,7 +1,7 @@
 import { mkdir, writeFile, access, readFile } from "node:fs/promises"
 import { join } from "node:path"
 import { pathToFileURL } from "node:url"
-import { fileTemplate, metaTemplate, slugify } from "./templates"
+import { fileTemplate, slugify } from "./templates"
 
 type TreeNode = {
     name: string
@@ -42,7 +42,7 @@ async function buildNode(node: TreeNode, parentPath: string): Promise<void> {
     await ensureDir(dirPath)
 
     if (node._meta) {
-        await writeIfAbsent(join(dirPath, "_meta.md"), metaTemplate(node.name, node._meta))
+        await writeIfAbsent(join(dirPath, "_meta.md"), fileTemplate(`${node.name}-meta`, node._meta))
     }
 
     if (!node.children || node.children.length === 0) {
@@ -83,14 +83,12 @@ const DEFAULT_TREE: TreeNode = {
                 {
                     name: "preferences",
                     type: "file",
-                    content:
-                        "# User Preferences\n\n- **Communication Style:**\n- **Formatting:**\n- **Code Style:**\n- **Timezone:**",
+                    content: "",
                 },
                 {
                     name: "profile",
                     type: "file",
-                    content:
-                        "# User Profile\n\n- **Role:**\n- **Skill Level:**\n- **Primary Goals:**\n- **Working Hours:**",
+                    content: "",
                 },
             ],
         },
