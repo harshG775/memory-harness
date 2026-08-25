@@ -1,0 +1,56 @@
+{
+    "name": "memory-harness",
+    "private": true,
+    "type": "module",
+    "imports": {
+        "#/*": "./src/*"
+    },
+    "scripts": {
+        "dev": "vite dev",
+        "generate-routes": "tsr generate",
+        "build": "vite build",
+        "preview": "vite preview",
+        "lint": "eslint",
+        "format": "prettier --write . && eslint --fix",
+        "check": "prettier --check .",
+        "db:generate": "drizzle-kit generate",
+        "db:migrate": "drizzle-kit migrate",
+        "db:push": "drizzle-kit push",
+        "db:pull": "drizzle-kit pull",
+        "db:studio": "drizzle-kit studio"
+    },
+    "dependencies": {
+        "@better-auth/mcp": "^1.7.1",
+        "@better-auth/oauth-provider": "^1.7.1",
+        "@modelcontextprotocol/sdk": "^1.30.0",
+        "@t3-oss/env-core": "^0.13.11",
+        "@tailwindcss/vite": "^4.1.18",
+        "@tanstack/react-devtools": "latest",
+        "@tanstack/react-router": "latest",
+        "@tanstack/react-router-devtools": "latest",
+        "@tanstack/react-start": "latest",
+        "better-auth": "^1.7.1",
+        "dotenv": "^17.4.2",
+        "drizzle-orm": "1.0.0-rc.4",
+        "nitro": "3.0.260610-beta",
+        "react": "^19.2.0",
+        "react-dom": "^19.2.0",
+        "tailwindcss": "^4.1.18",
+        "zod": "^4.4.3"
+    },
+    "devDependencies": {
+        "@tanstack/devtools-vite": "latest",
+        "@tanstack/eslint-config": "latest",
+        "@tanstack/router-cli": "^1.132.0",
+        "@types/node": "^22.10.2",
+        "@types/react": "^19.2.0",
+        "@types/react-dom": "^19.2.0",
+        "@vitejs/plugin-react": "^6.0.1",
+        "drizzle-kit": "1.0.0-rc.4",
+        "eslint": "^9.20.0",
+        "prettier": "^3.8.1",
+        "tsx": "^4.23.12",
+        "typescript": "^6.0.2",
+        "vite": "^8.0.0"
+    }
+}
