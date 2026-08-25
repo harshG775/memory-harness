@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as DotwellKnownSplatRouteImport } from './routes/[.]well-known/$'
+import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as PublicConsentRouteImport } from './routes/_public/consent'
 import { Route as PublicSignInRouteImport } from './routes/_public/sign-in'
 import { Route as McpIndexRouteImport } from './routes/mcp/index'
@@ -21,10 +23,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedRouteRoute = AuthedRouteRouteImport.update({
+  id: '/_authed',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DotwellKnownSplatRoute = DotwellKnownSplatRouteImport.update({
   id: '/.well-known/$',
   path: '/.well-known/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthedRouteRoute,
 } as any)
 const PublicConsentRoute = PublicConsentRouteImport.update({
   id: '/_public/consent',
@@ -50,6 +61,7 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/.well-known/$': typeof DotwellKnownSplatRoute
+  '/dashboard': typeof AuthedDashboardRoute
   '/consent': typeof PublicConsentRoute
   '/sign-in': typeof PublicSignInRoute
   '/mcp/': typeof McpIndexRoute
@@ -58,6 +70,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/.well-known/$': typeof DotwellKnownSplatRoute
+  '/dashboard': typeof AuthedDashboardRoute
   '/consent': typeof PublicConsentRoute
   '/sign-in': typeof PublicSignInRoute
   '/mcp': typeof McpIndexRoute
@@ -66,7 +79,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authed': typeof AuthedRouteRouteWithChildren
   '/.well-known/$': typeof DotwellKnownSplatRoute
+  '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_public/consent': typeof PublicConsentRoute
   '/_public/sign-in': typeof PublicSignInRoute
   '/mcp/': typeof McpIndexRoute
@@ -75,13 +90,28 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/.well-known/$' | '/consent' | '/sign-in' | '/mcp/' | '/api/auth/$'
+    | '/'
+    | '/.well-known/$'
+    | '/dashboard'
+    | '/consent'
+    | '/sign-in'
+    | '/mcp/'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/.well-known/$' | '/consent' | '/sign-in' | '/mcp' | '/api/auth/$'
+  to:
+    | '/'
+    | '/.well-known/$'
+    | '/dashboard'
+    | '/consent'
+    | '/sign-in'
+    | '/mcp'
+    | '/api/auth/$'
   id:
     | '__root__'
     | '/'
+    | '/_authed'
     | '/.well-known/$'
+    | '/_authed/dashboard'
     | '/_public/consent'
     | '/_public/sign-in'
     | '/mcp/'
@@ -90,6 +120,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
   DotwellKnownSplatRoute: typeof DotwellKnownSplatRoute
   PublicConsentRoute: typeof PublicConsentRoute
   PublicSignInRoute: typeof PublicSignInRoute
@@ -106,12 +137,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed': {
+      id: '/_authed'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.well-known/$': {
       id: '/.well-known/$'
       path: '/.well-known/$'
       fullPath: '/.well-known/$'
       preLoaderRoute: typeof DotwellKnownSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authed/dashboard': {
+      id: '/_authed/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthedDashboardRouteImport
+      parentRoute: typeof AuthedRouteRoute
     }
     '/_public/consent': {
       id: '/_public/consent'
@@ -144,8 +189,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthedRouteRouteChildren {
+  AuthedDashboardRoute: typeof AuthedDashboardRoute
+}
+
+const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
+  AuthedDashboardRoute: AuthedDashboardRoute,
+}
+
+const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
+  AuthedRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthedRouteRoute: AuthedRouteRouteWithChildren,
   DotwellKnownSplatRoute: DotwellKnownSplatRoute,
   PublicConsentRoute: PublicConsentRoute,
   PublicSignInRoute: PublicSignInRoute,
