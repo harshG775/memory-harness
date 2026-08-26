@@ -103,7 +103,7 @@ export async function ensureMemoryStructure(basePath: string): Promise<string> {
     return join(basePath, MEMORIES_DIR_NAME)
 }
 
-const DEFAULT_TREE: TreeNode = {
+export const DEFAULT_TREE: TreeNode = {
     name: "Assistant memory",
     type: "directory",
     _meta: "Top-level index of the assistant's persistent memory. Contains one subdirectory per memory category (You, Topics, Areas, People, Sessions) — see each subdirectory's own _meta.md for what belongs there.",
@@ -153,6 +153,34 @@ const DEFAULT_TREE: TreeNode = {
         },
     ],
 }
+
+function describeMemoryTree(tree: TreeNode): string {
+    const lines: string[] = []
+
+    function describeNode(node: TreeNode, prefix: string): void {
+        const path = prefix ? `${prefix}/${slugify(node.name)}` : slugify(node.name)
+
+        if (node.type === "file") {
+            lines.push(`- ${path}.md — ${node.description ?? node.name}`)
+            return
+        }
+
+        if (node.children && node.children.length > 0) {
+            for (const child of node.children) describeNode(child, path)
+        } else if (node._meta) {
+            lines.push(`- ${path}/<slug>.md — ${node._meta}`)
+        }
+    }
+
+    for (const child of tree.children ?? []) describeNode(child, "")
+    return lines.join("\n")
+}
+
+export const MEMORY_INSTRUCTIONS = `This server stores the assistant's persistent memory as markdown files with frontmatter (name, description, sources, aliases). The fixed layout is:
+
+${describeMemoryTree(DEFAULT_TREE)}
+
+Call memory_list before creating a new file to check whether one already covers the topic. Call memory_read before memory_append or memory_str_replace so edits build on the current content instead of guessing at it.`
 
 // CLI entry: `tsx src/lib/memory/generate-memory-structure.ts <folder-path> [tree-json-path]`
 // A `memories` subdirectory is created automatically inside <folder-path>.

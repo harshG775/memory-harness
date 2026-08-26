@@ -6,7 +6,7 @@ import { requireMcpAuth } from "@better-auth/mcp"
 import { join } from "node:path"
 import { z } from "zod"
 import { auth, MCP_RESOURCE } from "#/lib/auth"
-import { ensureMemoryStructure } from "#/lib/memory/generate-memory-structure"
+import { ensureMemoryStructure, MEMORY_INSTRUCTIONS } from "#/lib/memory/generate-memory-structure"
 import {
     appendMemoryFile,
     listMemoryEntries,
@@ -35,10 +35,13 @@ function toolError(error: unknown): { content: [{ type: "text"; text: string }];
 }
 
 function createMCPServer(memoriesRoot: string): McpServer {
-    const server = new McpServer({
-        name: "memory-harness",
-        version: "1.0.0",
-    })
+    const server = new McpServer(
+        {
+            name: "memory-harness",
+            version: "1.0.0",
+        },
+        { instructions: MEMORY_INSTRUCTIONS },
+    )
 
     server.registerTool(
         "memory_write",
