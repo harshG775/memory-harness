@@ -216,5 +216,14 @@ const generateDefaultMemoryTree = ({
     ]
 }
 
-export { generateDefaultMemoryTree, slugify, yamlString }
+const DEFAULT_BASE_PATH = "memories"
+
+function stripFrontmatter(content: string): string {
+    if (!content.startsWith("---\n")) return content
+    const end = content.indexOf("\n---\n", 4)
+    if (end === -1) return content
+    return content.slice(end + 5).replace(/^\n+/, "")
+}
+
+export { generateDefaultMemoryTree, slugify, yamlString, stripFrontmatter, DEFAULT_BASE_PATH }
 export type { TreeNode }

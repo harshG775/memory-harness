@@ -4,9 +4,13 @@ import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/
 import { createFileRoute } from "@tanstack/react-router"
 import { requireMcpAuth } from "@better-auth/mcp"
 import { join } from "node:path"
+import { eq } from "drizzle-orm"
 import { z } from "zod"
 import { auth, MCP_RESOURCE } from "#/lib/auth"
-import { ensureMemoryStructure, MEMORY_INSTRUCTIONS } from "#/lib/memory/generate-memory-structure"
+import { db } from "#/lib/db"
+import { user } from "#/lib/db/schema"
+import { stripFrontmatter } from "#/lib/memory/default-memories-tree"
+import { generateMemoryStructure } from "#/lib/memory/write-memory-tree"
 import {
     appendMemoryFile,
     listMemoryEntries,
@@ -19,6 +23,12 @@ import {
 } from "#/lib/memory/fs"
 
 const MEMORY_BASE = join(process.cwd(), ".mh")
+
+async function resolveUserName(userId: string | undefined): Promise<string> {
+    if (!userId) return "the user"
+    const rows = await db.select({ name: user.name }).from(user).where(eq(user.id, userId)).limit(1)
+    return rows[0]?.name ?? "the user"
+}
 
 const memoryPathSchema = z
     .string()
@@ -34,13 +44,13 @@ function toolError(error: unknown): { content: [{ type: "text"; text: string }];
     return { content: [{ type: "text", text }], isError: true }
 }
 
-function createMCPServer(memoriesRoot: string): McpServer {
+function createMCPServer(memoriesRoot: string, instructions: string): McpServer {
     const server = new McpServer(
         {
             name: "memory-harness",
             version: "1.0.0",
         },
-        { instructions: MEMORY_INSTRUCTIONS },
+        { instructions },
     )
 
     server.registerTool(
@@ -159,12 +169,16 @@ function createMCPServer(memoriesRoot: string): McpServer {
 
 const handleMcpRequest = requireMcpAuth(
     auth,
-    async (request) => {
-        const memoriesRoot = await ensureMemoryStructure(MEMORY_BASE)
+    async (request, accessTokenClaims) => {
+        const userName = await resolveUserName(accessTokenClaims.sub)
+        const memoriesRoot = await generateMemoryStructure(MEMORY_BASE, userName)
+        const rootMeta = await readMemoryFile(memoriesRoot, "_meta.md")
+        const instructions = `${stripFrontmatter(rootMeta)}\n${"Call memory_list before creating a new file to check whether one already covers the topic. Call memory_read before memory_append or memory_str_replace so edits build on the current content instead of guessing at it."}`
+
         const transport = new WebStandardStreamableHTTPServerTransport({
             sessionIdGenerator: undefined,
         })
-        const server = createMCPServer(memoriesRoot)
+        const server = createMCPServer(memoriesRoot, instructions)
         await server.connect(transport)
         return transport.handleRequest(request)
     },
