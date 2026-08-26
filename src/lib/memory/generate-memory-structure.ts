@@ -98,6 +98,11 @@ export async function generateMemoryStructure(basePath: string, tree: TreeNode):
     }
 }
 
+export async function ensureMemoryStructure(basePath: string): Promise<string> {
+    await generateMemoryStructure(basePath, DEFAULT_TREE)
+    return join(basePath, MEMORIES_DIR_NAME)
+}
+
 const DEFAULT_TREE: TreeNode = {
     name: "Assistant memory",
     type: "directory",
