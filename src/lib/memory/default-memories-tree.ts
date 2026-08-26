@@ -1,7 +1,3 @@
-import { access, mkdir, writeFile } from "node:fs/promises"
-import { join } from "node:path"
-import { pathToFileURL } from "node:url"
-
 type TreeNode = {
     name: string
     type: "directory" | "file"
