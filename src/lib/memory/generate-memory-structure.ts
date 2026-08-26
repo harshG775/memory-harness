@@ -1,14 +1,34 @@
 import { mkdir, writeFile, access, readFile } from "node:fs/promises"
 import { join } from "node:path"
 import { pathToFileURL } from "node:url"
-import { fileTemplate, slugify } from "./templates"
 
 type TreeNode = {
     name: string
     type: "directory" | "file"
     _meta?: string
+    description?: string
     content?: string
     children?: TreeNode[]
+}
+
+export function slugify(name: string): string {
+    return name
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+}
+
+export function fileTemplate(displayName: string, description?: string, body?: string): string {
+    const bodyContent = body ? `${body}\n` : ""
+    return `---
+name: ${slugify(displayName)}
+description: ${description ?? displayName}
+sources: []
+aliases: []
+---
+
+${bodyContent}`
 }
 
 async function pathExists(path: string): Promise<boolean> {
@@ -33,7 +53,7 @@ async function buildNode(node: TreeNode, parentPath: string): Promise<void> {
     const slug = slugify(node.name)
 
     if (node.type === "file") {
-        await writeIfAbsent(join(parentPath, `${slug}.md`), fileTemplate(node.name, node.content))
+        await writeIfAbsent(join(parentPath, `${slug}.md`), fileTemplate(node.name, node.description, node.content))
         return
     }
 
@@ -57,12 +77,19 @@ async function buildNode(node: TreeNode, parentPath: string): Promise<void> {
     }
 }
 
-export async function generateMemoryStructure(rootPath: string, tree: TreeNode): Promise<void> {
+const MEMORIES_DIR_NAME = "memories"
+
+export async function generateMemoryStructure(basePath: string, tree: TreeNode): Promise<void> {
     if (tree.type !== "directory") {
         throw new Error("Root tree node must be of type 'directory'")
     }
 
+    const rootPath = join(basePath, MEMORIES_DIR_NAME)
     await ensureDir(rootPath)
+
+    if (tree._meta) {
+        await writeIfAbsent(join(rootPath, "_meta.md"), fileTemplate(`${tree.name}-meta`, tree._meta))
+    }
 
     if (!tree.children || tree.children.length === 0) return
 
@@ -74,20 +101,23 @@ export async function generateMemoryStructure(rootPath: string, tree: TreeNode):
 const DEFAULT_TREE: TreeNode = {
     name: "Assistant memory",
     type: "directory",
+    _meta: "Top-level index of the assistant's persistent memory. Contains one subdirectory per memory category (You, Topics, Areas, People, Sessions) — see each subdirectory's own _meta.md for what belongs there.",
     children: [
         {
-            name: "User",
+            name: "You",
             type: "directory",
             _meta: "Facts about the user, split into two fixed files: preferences (how they like to work) and profile (who they are — role, goals, responsibilities). These two do not gain siblings.",
             children: [
                 {
                     name: "preferences",
                     type: "file",
+                    description: "How the {user} likes the assistant to work",
                     content: "",
                 },
                 {
                     name: "profile",
                     type: "file",
+                    description: "Who the {user} is — role, goals, responsibilities",
                     content: "",
                 },
             ],
@@ -119,11 +149,12 @@ const DEFAULT_TREE: TreeNode = {
     ],
 }
 
-// CLI entry: `tsx src/lib/memory/generate-memory-structure.ts <rootPath>/assistant-memory [treeJsonPath]`
+// CLI entry: `tsx src/lib/memory/generate-memory-structure.ts <folder-path> [tree-json-path]`
+// A `memories` subdirectory is created automatically inside <folder-path>.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-    const [rootPath, treeJsonPath] = process.argv.slice(2)
+    const [basePath, treeJsonPath] = process.argv.slice(2)
 
-    if (!rootPath) {
+    if (!basePath) {
         console.error("Usage: tsx generate-memory-structure.ts <folder-path> [tree-json-path]")
         process.exit(1)
     }
@@ -135,8 +166,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     }
 
     loadTree()
-        .then((tree) => generateMemoryStructure(rootPath, tree))
-        .then(() => console.log(`Memory structure ready at ${rootPath}`))
+        .then((tree) => generateMemoryStructure(basePath, tree))
+        .then(() => console.log(`Memory structure ready at ${join(basePath, "memories")}`))
         .catch((err) => {
             console.error(err)
             process.exit(1)
@@ -145,11 +176,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 
 /**
 
-assitantMemory.User.preferences()
-assitantMemory.User.profile()
-assitantMemory.Topics()
-assitantMemory.Areas()
-assitantMemory.People()
-assitantMemory.Sessions()
- 
+assistantMemory.User.preferences()
+assistantMemory.User.profile()
+assistantMemory.Topics(slug)
+assistantMemory.Areas(slug)
+assistantMemory.People(slug)
+assistantMemory.Sessions(slug)
+
 */
