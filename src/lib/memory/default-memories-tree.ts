@@ -23,7 +23,7 @@ function mdFile(name: string, slug: string, description: string, body: string[] 
     }
 }
 
-const generateDefaultMemoryTree = ({ user }: { user: string }): TreeNode => {
+const generateDefaultMemoryTree = ({ user, instructions }: { user: string; instructions: string[] }): TreeNode => {
     return {
         name: "Assistant memory",
         type: "directory",
@@ -42,9 +42,7 @@ const generateDefaultMemoryTree = ({ user }: { user: string }): TreeNode => {
                 "- sessions/ — reference pointers to past sessions only (id, date, summary, links to referenced topics/people). Never the full session transcript.",
                 "",
                 "How to use the tools:",
-                "- Call memory_list before creating a new file, to check whether one already covers the topic.",
-                "- Call memory_read before memory_append or memory_str_replace, so edits build on the current content instead of guessing at it.",
-                "- Use memory_write only for new files or full rewrites; prefer memory_append or memory_str_replace for incremental updates to existing ones.",
+                ...instructions,
             ]),
             {
                 name: "You",
