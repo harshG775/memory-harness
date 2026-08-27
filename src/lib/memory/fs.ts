@@ -1,4 +1,4 @@
-import { access, appendFile, mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises"
+import { access, appendFile, mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises"
 import { dirname, relative, resolve, sep } from "node:path"
 
 export class MemoryPathError extends Error {}
@@ -73,6 +73,19 @@ export async function listMemoryEntries(root: string, relPath: string, recursive
 
     await walk(target)
     return entries
+}
+
+export async function deleteMemoryFile(root: string, relPath: string, recursive: boolean): Promise<void> {
+    if (!relPath || relPath === ".") {
+        throw new MemoryPathError("Refusing to delete the memory root")
+    }
+    const target = resolveMemoryPath(root, relPath)
+    await requireExists(target, relPath)
+    const isDirectory = (await stat(target)).isDirectory()
+    if (isDirectory && !recursive) {
+        throw new MemoryPathError(`"${relPath}" is a directory. Pass recursive: true to delete it and its contents.`)
+    }
+    await rm(target, { recursive: isDirectory })
 }
 
 export async function strReplaceMemoryFile(

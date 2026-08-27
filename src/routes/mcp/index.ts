@@ -13,6 +13,7 @@ import { stripFrontmatter } from "#/lib/memory/default-memories-tree"
 import { generateMemoryStructure } from "#/lib/memory/write-memory-tree"
 import {
     appendMemoryFile,
+    deleteMemoryFile,
     listMemoryEntries,
     MemoryFileNotFoundError,
     MemoryPathError,
@@ -22,7 +23,10 @@ import {
     writeMemoryFile,
 } from "#/lib/memory/fs"
 
-const MEMORY_BASE = join(process.cwd(), ".mh")
+// const MEMORY_BASE = join(process.cwd(), ".mh")
+const MEMORY_BASE =  "C:/Users/Harsh/Documents/Obsidian Vaults/vault/.mh"
+
+
 
 async function resolveUserName(userId: string | undefined): Promise<string> {
     if (!userId) return "the user"
@@ -158,6 +162,30 @@ function createMCPServer(memoriesRoot: string, instructions: string): McpServer 
             try {
                 await strReplaceMemoryFile(memoriesRoot, path, old_str, new_str)
                 return { content: [{ type: "text", text: `Replaced text in ${path}` }] }
+            } catch (error) {
+                return toolError(error)
+            }
+        },
+    )
+
+    server.registerTool(
+        "memory_delete",
+        {
+            title: "Delete memory file",
+            description:
+                "Delete a memory file or directory. Deleting a directory requires recursive: true and removes all of its contents.",
+            inputSchema: {
+                path: memoryPathSchema,
+                recursive: z
+                    .boolean()
+                    .optional()
+                    .describe("Required to delete a directory; deletes it and everything inside it. Defaults to false."),
+            },
+        },
+        async ({ path, recursive }) => {
+            try {
+                await deleteMemoryFile(memoriesRoot, path, recursive ?? false)
+                return { content: [{ type: "text", text: `Deleted ${path}` }] }
             } catch (error) {
                 return toolError(error)
             }
