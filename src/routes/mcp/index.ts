@@ -9,7 +9,6 @@ import { env } from "#/env"
 import { auth, MCP_RESOURCE } from "#/lib/auth"
 import { db } from "#/lib/db"
 import { user } from "#/lib/db/schema"
-import { stripFrontmatter } from "#/lib/memory/default-memories-tree"
 import { generateMemoryStructure } from "#/lib/memory/write-memory-tree"
 import {
     appendMemoryFile,
@@ -197,7 +196,9 @@ const handleMcpRequest = requireMcpAuth(
     async (request, accessTokenClaims) => {
         const userName = await resolveUserName(accessTokenClaims.sub)
         const { root: memoriesRoot, isFirstRun } = await generateMemoryStructure(MEMORY_BASE, userName)
-        const rootMeta = await readMemoryFile(memoriesRoot, "_meta.md")
+
+        const index =
+            "Memory index — _meta.md (full conventions: fact-tagging, aliasing, frontmatter, privacy rules), you/preferences.md + you/profile.md (fixed, no siblings), topics/, areas/, people/, sessions/ (one file per subject, no deeper nesting). Read _meta.md in full via memory_read before your first write this session — its rules are not repeated here."
 
         const checklist = [
             "Before assuming you lack context, check memory-harness (memory_read you/preferences.md; memory_list or memory_read relevant areas, topics, or people files) instead of asking for things already provided.",
@@ -208,10 +209,10 @@ const handleMcpRequest = requireMcpAuth(
         ].join(" ")
 
         const onboarding = isFirstRun
-            ? " This is a freshly created, empty memory vault for this user — there is no prior context to check yet. Introduce yourself as their persistent memory and begin writing durable facts as this conversation reveals them."
+            ? " This is a freshly created, empty memory for this user — there is no prior context to check yet. Introduce yourself as their persistent memory and begin writing durable facts as this conversation reveals them."
             : ""
 
-        const instructions = `${stripFrontmatter(rootMeta)}\n${checklist}${onboarding}`
+        const instructions = `${index}\n${checklist}${onboarding}`
 
         const transport = new WebStandardStreamableHTTPServerTransport({
             sessionIdGenerator: undefined,
