@@ -3,9 +3,9 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js"
 import { createFileRoute } from "@tanstack/react-router"
 import { requireMcpAuth } from "@better-auth/mcp"
-import { join } from "node:path"
 import { eq } from "drizzle-orm"
 import { z } from "zod"
+import { env } from "#/env"
 import { auth, MCP_RESOURCE } from "#/lib/auth"
 import { db } from "#/lib/db"
 import { user } from "#/lib/db/schema"
@@ -23,10 +23,7 @@ import {
     writeMemoryFile,
 } from "#/lib/memory/fs"
 
-// const MEMORY_BASE = join(process.cwd(), ".mh")
-const MEMORY_BASE =  "C:/Users/Harsh/Documents/Obsidian Vaults/vault/.mh"
-
-
+const MEMORY_BASE = env.MEMORY_BASE
 
 async function resolveUserName(userId: string | undefined): Promise<string> {
     if (!userId) return "the user"
@@ -199,9 +196,22 @@ const handleMcpRequest = requireMcpAuth(
     auth,
     async (request, accessTokenClaims) => {
         const userName = await resolveUserName(accessTokenClaims.sub)
-        const memoriesRoot = await generateMemoryStructure(MEMORY_BASE, userName)
+        const { root: memoriesRoot, isFirstRun } = await generateMemoryStructure(MEMORY_BASE, userName)
         const rootMeta = await readMemoryFile(memoriesRoot, "_meta.md")
-        const instructions = `${stripFrontmatter(rootMeta)}\n${"Call memory_list before creating a new file to check whether one already covers the topic. Call memory_read before memory_append or memory_str_replace so edits build on the current content instead of guessing at it."}`
+
+        const checklist = [
+            "Before assuming you lack context, check memory-harness (memory_read you/preferences.md; memory_list or memory_read relevant areas, topics, or people files) instead of asking for things already provided.",
+            "As durable facts are learned (decisions, stack choices, completed milestones, preference corrections), write or update them in memory-harness as you go, not only when asked.",
+            "Follow you/preferences.md silently.",
+            "When a new fact conflicts with an existing one, update the existing line in place rather than duplicating it.",
+            "Call memory_list before creating a new file to check whether one already covers the topic. Call memory_read before memory_append or memory_str_replace so edits build on the current content instead of guessing at it.",
+        ].join(" ")
+
+        const onboarding = isFirstRun
+            ? " This is a freshly created, empty memory vault for this user — there is no prior context to check yet. Introduce yourself as their persistent memory and begin writing durable facts as this conversation reveals them."
+            : ""
+
+        const instructions = `${stripFrontmatter(rootMeta)}\n${checklist}${onboarding}`
 
         const transport = new WebStandardStreamableHTTPServerTransport({
             sessionIdGenerator: undefined,

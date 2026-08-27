@@ -8,6 +8,7 @@ export const env = createEnv({
     server: {
         SERVER_URL: z.url(),
         DB_FILE_NAME: z.string().min(1),
+        MEMORY_BASE: z.string().min(1),
     },
 
     /**
