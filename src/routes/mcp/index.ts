@@ -3,16 +3,16 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js"
 import { createFileRoute } from "@tanstack/react-router"
 import { requireMcpAuth } from "@better-auth/mcp"
-import { join } from "node:path"
 import { eq } from "drizzle-orm"
 import { z } from "zod"
+import { env } from "#/env"
 import { auth, MCP_RESOURCE } from "#/lib/auth"
 import { db } from "#/lib/db"
 import { user } from "#/lib/db/schema"
-import { stripFrontmatter } from "#/lib/memory/default-memories-tree"
 import { generateMemoryStructure } from "#/lib/memory/write-memory-tree"
 import {
     appendMemoryFile,
+    deleteMemoryFile,
     listMemoryEntries,
     MemoryFileNotFoundError,
     MemoryPathError,
@@ -22,7 +22,7 @@ import {
     writeMemoryFile,
 } from "#/lib/memory/fs"
 
-const MEMORY_BASE = join(process.cwd(), ".mh")
+const MEMORY_BASE = env.MEMORY_BASE
 
 async function resolveUserName(userId: string | undefined): Promise<string> {
     if (!userId) return "the user"
@@ -164,6 +164,30 @@ function createMCPServer(memoriesRoot: string, instructions: string): McpServer 
         },
     )
 
+    server.registerTool(
+        "memory_delete",
+        {
+            title: "Delete memory file",
+            description:
+                "Delete a memory file or directory. Deleting a directory requires recursive: true and removes all of its contents.",
+            inputSchema: {
+                path: memoryPathSchema,
+                recursive: z
+                    .boolean()
+                    .optional()
+                    .describe("Required to delete a directory; deletes it and everything inside it. Defaults to false."),
+            },
+        },
+        async ({ path, recursive }) => {
+            try {
+                await deleteMemoryFile(memoriesRoot, path, recursive ?? false)
+                return { content: [{ type: "text", text: `Deleted ${path}` }] }
+            } catch (error) {
+                return toolError(error)
+            }
+        },
+    )
+
     return server
 }
 
@@ -171,9 +195,24 @@ const handleMcpRequest = requireMcpAuth(
     auth,
     async (request, accessTokenClaims) => {
         const userName = await resolveUserName(accessTokenClaims.sub)
-        const memoriesRoot = await generateMemoryStructure(MEMORY_BASE, userName)
-        const rootMeta = await readMemoryFile(memoriesRoot, "_meta.md")
-        const instructions = `${stripFrontmatter(rootMeta)}\n${"Call memory_list before creating a new file to check whether one already covers the topic. Call memory_read before memory_append or memory_str_replace so edits build on the current content instead of guessing at it."}`
+        const { root: memoriesRoot, isFirstRun } = await generateMemoryStructure(MEMORY_BASE, userName)
+
+        const index =
+            "Memory index — _meta.md (full conventions: fact-tagging, aliasing, frontmatter, privacy rules), you/preferences.md + you/profile.md (fixed, no siblings), topics/, areas/, people/, sessions/ (one file per subject, no deeper nesting). Read _meta.md in full via memory_read before your first write this session — its rules are not repeated here."
+
+        const checklist = [
+            "Before assuming you lack context, check memory-harness (memory_read you/preferences.md; memory_list or memory_read relevant areas, topics, or people files) instead of asking for things already provided.",
+            "As durable facts are learned (decisions, stack choices, completed milestones, preference corrections), write or update them in memory-harness as you go, not only when asked.",
+            "Follow you/preferences.md silently.",
+            "When a new fact conflicts with an existing one, update the existing line in place rather than duplicating it.",
+            "Call memory_list before creating a new file to check whether one already covers the topic. Call memory_read before memory_append or memory_str_replace so edits build on the current content instead of guessing at it.",
+        ].join(" ")
+
+        const onboarding = isFirstRun
+            ? " This is a freshly created, empty memory for this user — there is no prior context to check yet. Introduce yourself as their persistent memory and begin writing durable facts as this conversation reveals them."
+            : ""
+
+        const instructions = `${index}\n${checklist}${onboarding}`
 
         const transport = new WebStandardStreamableHTTPServerTransport({
             sessionIdGenerator: undefined,

@@ -32,14 +32,16 @@ async function generateMemoryStructure(
     user: string,
     rootMeta: string[] = [],
     basePath: string = DEFAULT_BASE_PATH,
-): Promise<string> {
-    const tree = generateDefaultMemoryTree({ user, rootMeta, basePath })
+): Promise<{ root: string; isFirstRun: boolean }> {
+    const root = join(cwd, slugify(basePath))
+    const isFirstRun = !(await pathExists(root))
 
+    const tree = generateDefaultMemoryTree({ user, rootMeta, basePath })
     for (const node of tree) {
         await writeTree(cwd, node)
     }
 
-    return join(cwd, slugify(basePath))
+    return { root, isFirstRun }
 }
 
 export { generateMemoryStructure }
