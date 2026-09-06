@@ -1,8 +1,9 @@
 //  @ts-check
 
+import { defineConfig } from "eslint/config"
 import { tanstackConfig } from "@tanstack/eslint-config"
 
-export default [
+export default defineConfig([
     ...tanstackConfig,
     {
         rules: {
@@ -17,4 +18,4 @@ export default [
     {
         ignores: ["eslint.config.js", "prettier.config.js"],
     },
-]
+])
