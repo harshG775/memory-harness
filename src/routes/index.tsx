@@ -1,3 +1,4 @@
+import ThemeToggle from "#/components/ThemeToggle"
 import { createFileRoute } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/")({
@@ -5,5 +6,10 @@ export const Route = createFileRoute("/")({
 })
 
 function RouteComponent() {
-    return <div>Hello "/"!</div>
+    return (
+        <div>
+            Hello "/"!
+            <ThemeToggle />
+        </div>
+    )
 }
