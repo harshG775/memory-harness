@@ -1,14 +1,9 @@
 import { createEnv } from "@t3-oss/env-core"
-import { config as loadEnv } from "dotenv"
 import { z } from "zod"
-
-loadEnv({ path: [".env", ".env.local"] })
 
 export const env = createEnv({
     server: {
         SERVER_URL: z.url(),
-        DB_FILE_NAME: z.string().min(1),
-        MEMORY_BASE: z.string().min(1),
     },
 
     /**
@@ -18,8 +13,7 @@ export const env = createEnv({
     clientPrefix: "VITE_",
 
     client: {
-        VITE_PROJECT_TITLE: z.string().min(1).optional(),
-        VITE_SERVER_URL: z.url().optional(),
+        VITE_APP_TITLE: z.string().min(1).optional(),
     },
 
     /**
