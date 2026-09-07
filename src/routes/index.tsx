@@ -41,7 +41,7 @@ function RouteComponent() {
                 <div className="flex items-center gap-3">
                     <RiUserLine className="size-5 text-muted-foreground" />
                     <span className="text-sm font-medium">{user.name}</span>
-                    <Button variant="outline" size="sm" render={<Link to="/memories" />}>
+                    <Button variant="outline" size="sm" nativeButton={false} render={<Link to="/memories" />}>
                         Memories
                     </Button>
                     <Button variant="ghost" size="icon-sm" onClick={handleLogout}>
@@ -50,7 +50,9 @@ function RouteComponent() {
                     </Button>
                 </div>
             ) : (
-                <Button render={<Link to="/sign-in" />}>Log in</Button>
+                <Button nativeButton={false} render={<Link to="/sign-in" />}>
+                    Log in
+                </Button>
             )}
         </div>
     )
