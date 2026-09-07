@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as PublicSignInRouteImport } from './routes/_public/sign-in'
+import { Route as AuthedMemoriesIndexRouteImport } from './routes/_authed/memories/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
@@ -18,10 +20,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedRouteRoute = AuthedRouteRouteImport.update({
+  id: '/_authed',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PublicSignInRoute = PublicSignInRouteImport.update({
   id: '/_public/sign-in',
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedMemoriesIndexRoute = AuthedMemoriesIndexRouteImport.update({
+  id: '/memories/',
+  path: '/memories/',
+  getParentRoute: () => AuthedRouteRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
@@ -33,28 +44,39 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/sign-in': typeof PublicSignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/memories/': typeof AuthedMemoriesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sign-in': typeof PublicSignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/memories': typeof AuthedMemoriesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authed': typeof AuthedRouteRouteWithChildren
   '/_public/sign-in': typeof PublicSignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/_authed/memories/': typeof AuthedMemoriesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign-in' | '/api/auth/$'
+  fullPaths: '/' | '/sign-in' | '/api/auth/$' | '/memories/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sign-in' | '/api/auth/$'
-  id: '__root__' | '/' | '/_public/sign-in' | '/api/auth/$'
+  to: '/' | '/sign-in' | '/api/auth/$' | '/memories'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authed'
+    | '/_public/sign-in'
+    | '/api/auth/$'
+    | '/_authed/memories/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
   PublicSignInRoute: typeof PublicSignInRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -68,12 +90,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed': {
+      id: '/_authed'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_public/sign-in': {
       id: '/_public/sign-in'
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof PublicSignInRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authed/memories/': {
+      id: '/_authed/memories/'
+      path: '/memories'
+      fullPath: '/memories/'
+      preLoaderRoute: typeof AuthedMemoriesIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -85,8 +121,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthedRouteRouteChildren {
+  AuthedMemoriesIndexRoute: typeof AuthedMemoriesIndexRoute
+}
+
+const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
+  AuthedMemoriesIndexRoute: AuthedMemoriesIndexRoute,
+}
+
+const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
+  AuthedRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthedRouteRoute: AuthedRouteRouteWithChildren,
   PublicSignInRoute: PublicSignInRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
