@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router"
+import { createFileRoute, notFound, useRouter } from "@tanstack/react-router"
 import { Button } from "#/components/ui/button"
 import { Badge } from "#/components/ui/badge"
 import {
@@ -21,17 +21,27 @@ export const Route = createFileRoute("/_authed/memories/$memory_id")({
 
 function RouteComponent() {
     const memory = Route.useLoaderData()
+    const router = useRouter()
     const CategoryIcon = CATEGORY_META[memory.categoryId].icon
+
+    function handleBack() {
+        if (router.history.canGoBack()) {
+            router.history.back()
+        } else {
+            void router.navigate({ to: "/memories" })
+        }
+    }
 
     return (
         <div className="mx-auto flex max-w-3xl flex-col gap-6 p-6 md:p-8">
-            <Link
-                to="/memories"
+            <button
+                type="button"
+                onClick={handleBack}
                 className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
             >
                 <RiArrowLeftLine className="size-4" />
                 Memories
-            </Link>
+            </button>
 
             <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
                 <div className="flex items-start justify-between gap-4">

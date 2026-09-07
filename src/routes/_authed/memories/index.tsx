@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { Button } from "#/components/ui/button"
 import { Input } from "#/components/ui/input"
 import { Badge } from "#/components/ui/badge"
@@ -8,13 +8,28 @@ import { RiAddLine, RiSearchLine, RiBrainLine, RiFileTextLine, RiListCheck2 } fr
 import type { CategoryId } from "./-mock-memories"
 import { CATEGORY_META, MOCK_MEMORIES, formatBytes, formatRelativeTime } from "./-mock-memories"
 
+type MemoriesSearch = {
+    category?: CategoryId
+}
+
 export const Route = createFileRoute("/_authed/memories/")({
+    validateSearch: (search: Record<string, unknown>): MemoriesSearch => ({
+        category: (Object.keys(CATEGORY_META) as CategoryId[]).includes(search.category as CategoryId)
+            ? (search.category as CategoryId)
+            : undefined,
+    }),
     component: RouteComponent,
 })
 
 function RouteComponent() {
+    const navigate = useNavigate({ from: Route.fullPath })
+    const { category } = Route.useSearch()
+    const activeCategory = category ?? "all"
     const [query, setQuery] = useState("")
-    const [activeCategory, setActiveCategory] = useState<CategoryId | "all">("all")
+
+    function setActiveCategory(next: CategoryId | "all") {
+        void navigate({ search: { category: next === "all" ? undefined : next } })
+    }
 
     const filtered = useMemo(() => {
         return MOCK_MEMORIES.filter((memory) => {
@@ -29,7 +44,7 @@ function RouteComponent() {
     }, [activeCategory, query])
 
     return (
-        <div className="mx-auto flex max-w-5xl flex-col gap-6 p-6 md:p-8">
+        <div className="flex-1 mx-auto flex max-w-5xl flex-col gap-6 p-6 md:p-8">
             <div className="flex flex-col gap-1">
                 <h1 className="font-heading text-2xl font-medium">Memories</h1>
                 <p className="text-sm text-muted-foreground">

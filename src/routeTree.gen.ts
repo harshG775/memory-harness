@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
+import { Route as AuthedMemoriesRouteRouteImport } from './routes/_authed/memories/route'
 import { Route as PublicSignInRouteImport } from './routes/_public/sign-in'
 import { Route as AuthedMemoriesIndexRouteImport } from './routes/_authed/memories/index'
 import { Route as AuthedMemoriesMemory_idRouteImport } from './routes/_authed/memories/$memory_id'
@@ -26,25 +27,30 @@ const AuthedRouteRoute = AuthedRouteRouteImport.update({
   id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedMemoriesRouteRoute = AuthedMemoriesRouteRouteImport.update({
+  id: '/memories',
+  path: '/memories',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 const PublicSignInRoute = PublicSignInRouteImport.update({
   id: '/_public/sign-in',
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedMemoriesIndexRoute = AuthedMemoriesIndexRouteImport.update({
-  id: '/memories/',
-  path: '/memories/',
-  getParentRoute: () => AuthedRouteRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedMemoriesRouteRoute,
 } as any)
 const AuthedMemoriesMemory_idRoute = AuthedMemoriesMemory_idRouteImport.update({
-  id: '/memories/$memory_id',
-  path: '/memories/$memory_id',
-  getParentRoute: () => AuthedRouteRoute,
+  id: '/$memory_id',
+  path: '/$memory_id',
+  getParentRoute: () => AuthedMemoriesRouteRoute,
 } as any)
 const AuthedMemoriesNewRoute = AuthedMemoriesNewRouteImport.update({
-  id: '/memories/new',
-  path: '/memories/new',
-  getParentRoute: () => AuthedRouteRoute,
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthedMemoriesRouteRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
@@ -54,6 +60,7 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/memories': typeof AuthedMemoriesRouteRouteWithChildren
   '/sign-in': typeof PublicSignInRoute
   '/memories/$memory_id': typeof AuthedMemoriesMemory_idRoute
   '/memories/new': typeof AuthedMemoriesNewRoute
@@ -72,6 +79,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteRouteWithChildren
+  '/_authed/memories': typeof AuthedMemoriesRouteRouteWithChildren
   '/_public/sign-in': typeof PublicSignInRoute
   '/_authed/memories/$memory_id': typeof AuthedMemoriesMemory_idRoute
   '/_authed/memories/new': typeof AuthedMemoriesNewRoute
@@ -82,6 +90,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/memories'
     | '/sign-in'
     | '/memories/$memory_id'
     | '/memories/new'
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authed'
+    | '/_authed/memories'
     | '/_public/sign-in'
     | '/_authed/memories/$memory_id'
     | '/_authed/memories/new'
@@ -129,6 +139,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/memories': {
+      id: '/_authed/memories'
+      path: '/memories'
+      fullPath: '/memories'
+      preLoaderRoute: typeof AuthedMemoriesRouteRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/_public/sign-in': {
       id: '/_public/sign-in'
       path: '/sign-in'
@@ -138,24 +155,24 @@ declare module '@tanstack/react-router' {
     }
     '/_authed/memories/': {
       id: '/_authed/memories/'
-      path: '/memories'
+      path: '/'
       fullPath: '/memories/'
       preLoaderRoute: typeof AuthedMemoriesIndexRouteImport
-      parentRoute: typeof AuthedRouteRoute
+      parentRoute: typeof AuthedMemoriesRouteRoute
     }
     '/_authed/memories/$memory_id': {
       id: '/_authed/memories/$memory_id'
-      path: '/memories/$memory_id'
+      path: '/$memory_id'
       fullPath: '/memories/$memory_id'
       preLoaderRoute: typeof AuthedMemoriesMemory_idRouteImport
-      parentRoute: typeof AuthedRouteRoute
+      parentRoute: typeof AuthedMemoriesRouteRoute
     }
     '/_authed/memories/new': {
       id: '/_authed/memories/new'
-      path: '/memories/new'
+      path: '/new'
       fullPath: '/memories/new'
       preLoaderRoute: typeof AuthedMemoriesNewRouteImport
-      parentRoute: typeof AuthedRouteRoute
+      parentRoute: typeof AuthedMemoriesRouteRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -167,16 +184,27 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthedRouteRouteChildren {
+interface AuthedMemoriesRouteRouteChildren {
   AuthedMemoriesMemory_idRoute: typeof AuthedMemoriesMemory_idRoute
   AuthedMemoriesNewRoute: typeof AuthedMemoriesNewRoute
   AuthedMemoriesIndexRoute: typeof AuthedMemoriesIndexRoute
 }
 
-const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
+const AuthedMemoriesRouteRouteChildren: AuthedMemoriesRouteRouteChildren = {
   AuthedMemoriesMemory_idRoute: AuthedMemoriesMemory_idRoute,
   AuthedMemoriesNewRoute: AuthedMemoriesNewRoute,
   AuthedMemoriesIndexRoute: AuthedMemoriesIndexRoute,
+}
+
+const AuthedMemoriesRouteRouteWithChildren =
+  AuthedMemoriesRouteRoute._addFileChildren(AuthedMemoriesRouteRouteChildren)
+
+interface AuthedRouteRouteChildren {
+  AuthedMemoriesRouteRoute: typeof AuthedMemoriesRouteRouteWithChildren
+}
+
+const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
+  AuthedMemoriesRouteRoute: AuthedMemoriesRouteRouteWithChildren,
 }
 
 const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
