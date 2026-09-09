@@ -57,13 +57,7 @@ export const getMemoriesFn = createServerFn({ method: "GET" })
         const orderBy = data.sortOrder === "asc" ? asc(sortColumn) : desc(sortColumn)
 
         const [memories, [{ total }]] = await Promise.all([
-            db
-                .select()
-                .from(memory)
-                .where(whereClause)
-                .orderBy(orderBy)
-                .limit(data.limit)
-                .offset(data.offset),
+            db.select().from(memory).where(whereClause).orderBy(orderBy).limit(data.limit).offset(data.offset),
             db.select({ total: count() }).from(memory).where(whereClause),
         ])
 
@@ -80,15 +74,13 @@ export const getMemoryByIdFn = createServerFn({ method: "GET" })
     .middleware([authedMiddleware])
     .validator(z.object({ id: z.string() }))
     .handler(async ({ context, data }) => {
-        const [found] = await db
+        const found = await db
             .select()
             .from(memory)
-            .where(
-                and(eq(memory.id, data.id), eq(memory.userId, context.session.user.id), isNull(memory.deletedAt)),
-            )
+            .where(and(eq(memory.id, data.id), eq(memory.userId, context.session.user.id), isNull(memory.deletedAt)))
             .limit(1)
 
-        return found ?? null
+        return found.length === 0 ? null : found[0]
     })
 
 export const createMemoryFn = createServerFn({ method: "POST" })
@@ -120,7 +112,7 @@ export const updateMemoryFn = createServerFn({ method: "POST" })
     .handler(async ({ context, data }) => {
         const { path, content, sizeBytes } = buildMemoryFields(data)
 
-        const [updated] = await db
+        const updated = await db
             .update(memory)
             .set({
                 categoryId: data.categoryId,
@@ -134,7 +126,7 @@ export const updateMemoryFn = createServerFn({ method: "POST" })
             .where(and(eq(memory.id, data.id), eq(memory.userId, context.session.user.id)))
             .returning()
 
-        return updated ?? null
+        return updated.length === 0 ? null : updated[0]
     })
 
 export const deleteMemoryFn = createServerFn({ method: "POST" })

@@ -9,6 +9,7 @@ import { categoryIdEnum } from "#/lib/db/schema/memory-schema"
 import type { CategoryId } from "#/lib/memory/category"
 import { CATEGORY_LABELS, CATEGORY_ICONS } from "#/lib/memory/category"
 import { formatBytes, formatRelativeTime } from "#/lib/memory/format"
+import { cn } from "#/lib/utils"
 import { Skeleton } from "#/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "#/components/ui/tabs"
 import { Button } from "#/components/ui/button"
@@ -276,6 +277,16 @@ function MemoryCard({ memory, CategoryIcon }: { memory: Memory; CategoryIcon: ty
             <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3">
                 <span className="truncate font-mono text-xs text-muted-foreground">{memory.path}</span>
                 <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                        <span
+                            className={cn(
+                                "size-1.5 rounded-full",
+                                memory.embedding ? "bg-emerald-500" : "bg-muted-foreground/40",
+                            )}
+                        />
+                        {memory.embedding ? "Embedded" : "Not embedded"}
+                    </span>
+                    <span>&middot;</span>
                     <span>{formatBytes(memory.sizeBytes)}</span>
                     <span>&middot;</span>
                     <span>{formatRelativeTime(memory.updatedAt)}</span>

@@ -14,6 +14,7 @@ import { stripFrontmatter } from "#/lib/memory/templates"
 import type { CategoryId } from "#/lib/memory/category"
 import { CATEGORY_LABELS, CATEGORY_ICONS } from "#/lib/memory/category"
 import { formatBytes, formatRelativeTime } from "#/lib/memory/format"
+import { cn } from "#/lib/utils"
 import { Button } from "#/components/ui/button"
 import { Badge } from "#/components/ui/badge"
 import { Input } from "#/components/ui/input"
@@ -31,7 +32,7 @@ const memoryQueryOptions = (id: string) =>
 
 export const Route = createFileRoute("/_authed/memories/$memory_id/")({
     validateSearch: z.object({
-        edit: z.literal("true").optional(),
+        edit: z.boolean().optional(),
     }),
     loader: async ({ context, params }) => {
         const memory = await context.queryClient.query(memoryQueryOptions(params.memory_id))
@@ -80,10 +81,10 @@ function RouteComponent() {
 
     if (!memory) return null
 
-    const isEditing = edit === "true"
+    const isEditing = edit === true
     const CategoryIcon = CATEGORY_ICONS[memory.categoryId]
 
-    function handleBack() {
+    const handleBack = () => {
         if (router.history.canGoBack()) {
             router.history.back()
         } else {
@@ -91,19 +92,19 @@ function RouteComponent() {
         }
     }
 
-    function startEdit() {
+    const startEdit = () => {
         setCategoryId(memory.categoryId as CreatableCategoryId)
         setDisplayName(memory.displayName)
         setDescription(memory.description)
         setContent(stripFrontmatter(memory.content))
-        void navigate({ search: (prev) => ({ ...prev, edit: "true" }) })
+        void navigate({ search: (prev) => ({ ...prev, edit: true }) })
     }
 
-    function cancelEdit() {
+    const cancelEdit = () => {
         void navigate({ search: (prev) => ({ ...prev, edit: undefined }) })
     }
 
-    function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
         saveMemory({ data: { id: memory_id, categoryId, displayName, description, content } })
     }
@@ -220,6 +221,16 @@ function RouteComponent() {
                     <p className="text-sm text-muted-foreground">{memory.description}</p>
 
                     <div className="flex items-center gap-3 border-y border-border py-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                            <span
+                                className={cn(
+                                    "size-1.5 rounded-full",
+                                    memory.embedding ? "bg-emerald-500" : "bg-muted-foreground/40",
+                                )}
+                            />
+                            {memory.embedding ? "Embedded" : "Not embedded"}
+                        </span>
+                        <span>&middot;</span>
                         <span>{formatBytes(memory.sizeBytes)}</span>
                         <span>&middot;</span>
                         <span>Updated {formatRelativeTime(memory.updatedAt)}</span>
