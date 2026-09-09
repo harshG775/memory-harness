@@ -2,12 +2,14 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query"
 import { z } from "zod"
 import { RiBrainLine } from "@remixicon/react"
-import { getMemoriesFn } from "#/lib/server/memories.function"
+import type { SortBy, SortOrder } from "#/lib/server/memories.function"
+import { getMemoriesFn, sortByEnum, sortOrderEnum } from "#/lib/server/memories.function"
 import { categoryIdEnum } from "#/lib/db/schema/memory-schema"
 import { Skeleton } from "#/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "#/components/ui/tabs"
 import { Button } from "#/components/ui/button"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "#/components/ui/empty"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "#/components/ui/select"
 
 type CategoryId = (typeof categoryIdEnum.enumValues)[number]
 
@@ -19,34 +21,67 @@ const CATEGORY_LABELS: Record<CategoryId, string> = {
     sessions: "Sessions",
 }
 
+const SORT_LABELS: Record<SortBy, string> = {
+    updatedAt: "Last updated",
+    createdAt: "Date created",
+    displayName: "Name",
+}
+
 const PAGE_SIZE = 20
 
-const memoriesQueryOptions = (categoryId: CategoryId | undefined, page: number) =>
+const memoriesQueryOptions = (categoryId: CategoryId | undefined, sortBy: SortBy, sortOrder: SortOrder, page: number) =>
     queryOptions({
-        queryKey: ["memories", { categoryId: categoryId ?? "all", page }],
-        queryFn: () => getMemoriesFn({ data: { categoryId, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE } }),
+        queryKey: ["memories", { categoryId: categoryId ?? "all", sortBy, sortOrder, page }],
+        queryFn: () =>
+            getMemoriesFn({
+                data: { categoryId, sortBy, sortOrder, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE },
+            }),
     })
 
 export const Route = createFileRoute("/_authed/memories/")({
     validateSearch: z.object({
         category: z.enum(categoryIdEnum.enumValues).optional(),
+        sortBy: z.enum(sortByEnum).optional(),
+        sortOrder: z.enum(sortOrderEnum).optional(),
         page: z.coerce.number().int().positive().optional().catch(undefined),
     }),
-    loaderDeps: ({ search }) => ({ category: search.category, page: search.page }),
-    loader: ({ context, deps }) => context.queryClient.query(memoriesQueryOptions(deps.category, deps.page ?? 1)),
+    loaderDeps: ({ search }) => ({
+        category: search.category,
+        sortBy: search.sortBy,
+        sortOrder: search.sortOrder,
+        page: search.page,
+    }),
+    loader: ({ context, deps }) =>
+        context.queryClient.query(
+            memoriesQueryOptions(deps.category, deps.sortBy ?? "updatedAt", deps.sortOrder ?? "desc", deps.page ?? 1),
+        ),
     pendingComponent: MemoriesSkeleton,
     component: RouteComponent,
 })
 
 function RouteComponent() {
     const navigate = useNavigate({ from: Route.fullPath })
-    const { category, page } = Route.useSearch()
+    const { category, sortBy, sortOrder, page } = Route.useSearch()
     const activeCategory = category ?? "all"
+    const activeSortBy = sortBy ?? "updatedAt"
+    const activeSortOrder = sortOrder ?? "desc"
     const currentPage = page ?? 1
-    const { data } = useSuspenseQuery(memoriesQueryOptions(category, currentPage))
+    const { data } = useSuspenseQuery(memoriesQueryOptions(category, activeSortBy, activeSortOrder, currentPage))
 
     function setActiveCategory(next: CategoryId | "all") {
-        void navigate({ search: { category: next === "all" ? undefined : next, page: undefined } })
+        void navigate({ search: (prev) => ({ ...prev, category: next === "all" ? undefined : next, page: undefined }) })
+    }
+
+    function setSortBy(next: SortBy) {
+        void navigate({
+            search: (prev) => ({ ...prev, sortBy: next === "updatedAt" ? undefined : next, page: undefined }),
+        })
+    }
+
+    function setSortOrder(next: SortOrder) {
+        void navigate({
+            search: (prev) => ({ ...prev, sortOrder: next === "desc" ? undefined : next, page: undefined }),
+        })
     }
 
     function setPage(next: number) {
@@ -55,16 +90,42 @@ function RouteComponent() {
 
     return (
         <div className="space-y-4 p-4">
-            <Tabs value={activeCategory} onValueChange={(value) => setActiveCategory(value as CategoryId | "all")}>
-                <TabsList>
-                    <TabsTrigger value="all">All</TabsTrigger>
-                    {categoryIdEnum.enumValues.map((categoryId) => (
-                        <TabsTrigger key={categoryId} value={categoryId}>
-                            {CATEGORY_LABELS[categoryId]}
-                        </TabsTrigger>
-                    ))}
-                </TabsList>
-            </Tabs>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <Tabs value={activeCategory} onValueChange={(value) => setActiveCategory(value as CategoryId | "all")}>
+                    <TabsList>
+                        <TabsTrigger value="all">All</TabsTrigger>
+                        {categoryIdEnum.enumValues.map((categoryId) => (
+                            <TabsTrigger key={categoryId} value={categoryId}>
+                                {CATEGORY_LABELS[categoryId]}
+                            </TabsTrigger>
+                        ))}
+                    </TabsList>
+                </Tabs>
+
+                <div className="flex items-center gap-2">
+                    <Select value={activeSortBy} onValueChange={(value) => setSortBy(value as SortBy)}>
+                        <SelectTrigger size="sm">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {sortByEnum.map((value) => (
+                                <SelectItem key={value} value={value}>
+                                    {SORT_LABELS[value]}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Select value={activeSortOrder} onValueChange={(value) => setSortOrder(value as SortOrder)}>
+                        <SelectTrigger size="sm">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="desc">Descending</SelectItem>
+                            <SelectItem value="asc">Ascending</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
 
             {data.memories.length === 0 ? (
                 <Empty>
