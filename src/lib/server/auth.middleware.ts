@@ -9,3 +9,17 @@ export const authMiddleware = createMiddleware({ type: "request" }).server(async
         },
     })
 })
+
+export const authedMiddleware = createMiddleware({ type: "request" })
+    .middleware([authMiddleware])
+    .server(async ({ context, next }) => {
+        if (!context.session) {
+            throw new Error("Unauthorized")
+        }
+
+        return next({
+            context: {
+                session: context.session,
+            },
+        })
+    })

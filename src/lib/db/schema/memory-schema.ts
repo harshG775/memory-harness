@@ -14,15 +14,15 @@ export const memory = pgTable(
             .references(() => user.id, { onDelete: "cascade" }),
 
         path: text("path").notNull(),
-        size_bytes: integer("size_bytes").notNull(),
+        sizeBytes: integer("size_bytes").notNull(),
 
         //
-        category_id: categoryIdEnum("category_id").notNull(),
-        is_singleton: boolean("is_singleton").notNull().default(false),
+        categoryId: categoryIdEnum("category_id").notNull(),
+        isSingleton: boolean("is_singleton").notNull().default(false),
         kind: memoryKindEnum("kind").notNull().default("entry"),
 
         //
-        display_name: text("display_name").notNull(),
+        displayName: text("display_name").notNull(),
         description: text("description").notNull(),
         content: text("content").notNull().default(""),
 
@@ -40,10 +40,10 @@ export const memory = pgTable(
     },
     (table) => [
         uniqueIndex("memory_user_path_idx").on(table.userId, table.path),
-        index("memory_user_category_idx").on(table.userId, table.category_id),
+        index("memory_user_category_idx").on(table.userId, table.categoryId),
         uniqueIndex("memory_singleton_idx")
-            .on(table.userId, table.category_id)
-            .where(sql`${table.is_singleton} = true`),
+            .on(table.userId, table.categoryId)
+            .where(sql`${table.isSingleton} = true`),
         index("memory_embedding_idx").using("hnsw", table.embedding.op("vector_cosine_ops")),
     ],
 )

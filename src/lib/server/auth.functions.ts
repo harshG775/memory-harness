@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start"
-import { authMiddleware } from "./auth.middleware"
+import { authedMiddleware, authMiddleware } from "./auth.middleware"
 
 export const getSession = createServerFn({ method: "GET" })
     .middleware([authMiddleware])
@@ -8,11 +8,7 @@ export const getSession = createServerFn({ method: "GET" })
     })
 
 export const ensureSession = createServerFn({ method: "GET" })
-    .middleware([authMiddleware])
+    .middleware([authedMiddleware])
     .handler(async ({ context }) => {
-        if (!context.session) {
-            throw new Error("Unauthorized")
-        }
-
         return context.session
     })
