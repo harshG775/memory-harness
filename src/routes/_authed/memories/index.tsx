@@ -73,6 +73,13 @@ function RouteComponent() {
     const currentPage = page ?? 1
     const { data } = useSuspenseQuery(memoriesQueryOptions(category, activeSortBy, activeSortOrder, currentPage))
 
+    const groupedMemories = categoryIdEnum.enumValues
+        .map((categoryId) => ({
+            categoryId,
+            items: data.memories.filter((memory) => memory.categoryId === categoryId),
+        }))
+        .filter((group) => group.items.length > 0)
+
     function setActiveCategory(next: CategoryId | "all") {
         void navigate({ search: (prev) => ({ ...prev, category: next === "all" ? undefined : next, page: undefined }) })
     }
@@ -95,18 +102,18 @@ function RouteComponent() {
 
     return (
         <div className="space-y-4 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-                <Tabs value={activeCategory} onValueChange={(value) => setActiveCategory(value as CategoryId | "all")}>
-                    <TabsList>
-                        <TabsTrigger value="all">All</TabsTrigger>
-                        {categoryIdEnum.enumValues.map((categoryId) => (
-                            <TabsTrigger key={categoryId} value={categoryId}>
-                                {CATEGORY_LABELS[categoryId]}
-                            </TabsTrigger>
-                        ))}
-                    </TabsList>
-                </Tabs>
+            <Tabs value={activeCategory} onValueChange={(value) => setActiveCategory(value as CategoryId | "all")}>
+                <TabsList>
+                    <TabsTrigger value="all">All</TabsTrigger>
+                    {categoryIdEnum.enumValues.map((categoryId) => (
+                        <TabsTrigger key={categoryId} value={categoryId}>
+                            {CATEGORY_LABELS[categoryId]}
+                        </TabsTrigger>
+                    ))}
+                </TabsList>
+            </Tabs>
 
+            <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                     <Select value={activeSortBy} onValueChange={(value) => setSortBy(value as SortBy)}>
                         <SelectTrigger size="sm">
@@ -132,11 +139,12 @@ function RouteComponent() {
                             ))}
                         </SelectContent>
                     </Select>
-                    <Button data-icon="inline-start" nativeButton={false} render={<Link to="/memories/new" />}>
-                        <RiAddLine />
-                        New memory
-                    </Button>
                 </div>
+
+                <Button data-icon="inline-start" nativeButton={false} render={<Link to="/memories/new" />}>
+                    <RiAddLine />
+                    New memory
+                </Button>
             </div>
 
             {data.memories.length === 0 ? (
@@ -155,38 +163,49 @@ function RouteComponent() {
                 </Empty>
             ) : (
                 <>
-                    <div className="space-y-2">
-                        {data.memories.map((memory) => (
-                            <div key={memory.id} className="rounded-2xl border p-4">
-                                <p className="font-medium">{memory.displayName}</p>
-                                <p className="text-muted-foreground text-sm">{memory.description}</p>
-                            </div>
+                    <div className="min-h-96 space-y-6">
+                        {groupedMemories.map((group) => (
+                            <section key={group.categoryId} className="space-y-2">
+                                <h2 className="text-sm font-medium text-muted-foreground">
+                                    {CATEGORY_LABELS[group.categoryId]}
+                                </h2>
+                                <div className="space-y-2">
+                                    {group.items.map((memory) => (
+                                        <div key={memory.id} className="rounded-2xl border p-4">
+                                            <p className="font-medium">{memory.displayName}</p>
+                                            <p className="text-muted-foreground text-sm">{memory.description}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
                         ))}
                     </div>
 
-                    <div className="flex items-center justify-between pt-2">
-                        <p className="text-muted-foreground text-sm">
-                            {`${(currentPage - 1) * PAGE_SIZE + 1}-${(currentPage - 1) * PAGE_SIZE + data.memories.length} of ${data.total}`}
-                        </p>
-                        <div className="flex items-center gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={currentPage === 1}
-                                onClick={() => setPage(currentPage - 1)}
-                            >
-                                Previous
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={!data.hasMore}
-                                onClick={() => setPage(currentPage + 1)}
-                            >
-                                Next
-                            </Button>
+                    {data.total > PAGE_SIZE && (
+                        <div className="flex items-center justify-between pt-2">
+                            <p className="text-muted-foreground text-sm">
+                                {`${(currentPage - 1) * PAGE_SIZE + 1}-${(currentPage - 1) * PAGE_SIZE + data.memories.length} of ${data.total}`}
+                            </p>
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={currentPage === 1}
+                                    onClick={() => setPage(currentPage - 1)}
+                                >
+                                    Previous
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={!data.hasMore}
+                                    onClick={() => setPage(currentPage + 1)}
+                                >
+                                    Next
+                                </Button>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </>
             )}
         </div>
@@ -196,16 +215,17 @@ function RouteComponent() {
 function MemoriesSkeleton() {
     return (
         <div className="space-y-4 p-4">
+            <Skeleton className="h-9 w-80 rounded-3xl" />
+
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <Skeleton className="h-9 w-80 rounded-3xl" />
                 <div className="flex items-center gap-2">
                     <Skeleton className="h-9 w-32 rounded-3xl" />
                     <Skeleton className="h-9 w-28 rounded-3xl" />
-                    <Skeleton className="h-9 w-36 rounded-3xl" />
                 </div>
+                <Skeleton className="h-9 w-36 rounded-3xl" />
             </div>
 
-            <div className="space-y-2">
+            <div className="min-h-96 space-y-2">
                 {Array.from({ length: 6 }).map((_, i) => (
                     <Skeleton key={i} className="h-16 w-full" />
                 ))}

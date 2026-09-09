@@ -5,6 +5,7 @@ import { z } from "zod"
 import { categoryIdEnum, memory } from "../db/schema/memory-schema"
 import { db } from "../db"
 import { and, asc, count, desc, eq, isNull } from "drizzle-orm"
+import { fileTemplate, slugify } from "../memory/templates"
 
 export const sortByEnum = ["updatedAt", "createdAt", "displayName"] as const
 export type SortBy = (typeof sortByEnum)[number]
@@ -17,6 +18,8 @@ const SORT_COLUMNS = {
     createdAt: memory.createdAt,
     displayName: memory.displayName,
 } as const
+
+export const creatableCategoryIdEnum = categoryIdEnum.enumValues.filter((categoryId) => categoryId !== "you")
 
 export const getMemoriesFn = createServerFn({ method: "GET" })
     .middleware([authedMiddleware])
@@ -64,10 +67,37 @@ export const getMemoryByIdFn = createServerFn()
     .validator(z.object({}))
     .handler(() => {})
 
-export const createMemoryFn = createServerFn()
+export const createMemoryFn = createServerFn({ method: "POST" })
     .middleware([authedMiddleware])
-    .validator(z.object({}))
-    .handler(() => {})
+    .validator(
+        z.object({
+            categoryId: z.enum(creatableCategoryIdEnum),
+            displayName: z.string().trim().min(1).max(200),
+            description: z.string().trim().min(1).max(500),
+            content: z.string().default(""),
+        }),
+    )
+    .handler(async ({ context, data }) => {
+        const path = `${data.categoryId}/${slugify(data.displayName)}.md`
+        const content = fileTemplate(data.displayName, data.description) + data.content
+        const sizeBytes = new TextEncoder().encode(content).length
+
+        const [created] = await db
+            .insert(memory)
+            .values({
+                id: crypto.randomUUID(),
+                userId: context.session.user.id,
+                path,
+                sizeBytes,
+                categoryId: data.categoryId,
+                displayName: data.displayName,
+                description: data.description,
+                content,
+            })
+            .returning()
+
+        return created
+    })
 
 export const updateMemoryFn = createServerFn()
     .middleware([authedMiddleware])
