@@ -1,13 +1,24 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router"
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query"
 import { z } from "zod"
-import { RiAddLine, RiBrainLine } from "@remixicon/react"
+import {
+    RiAddLine,
+    RiBrainLine,
+    RiPriceTag3Line,
+    RiCompassLine,
+    RiUserLine,
+    RiHistoryLine,
+    RiFileTextLine,
+    RiListCheck2,
+} from "@remixicon/react"
 import type { SortBy, SortOrder } from "#/lib/server/memories.function"
 import { getMemoriesFn, sortByEnum, sortOrderEnum } from "#/lib/server/memories.function"
 import { categoryIdEnum } from "#/lib/db/schema/memory-schema"
+import { formatBytes, formatRelativeTime } from "#/lib/memory/format"
 import { Skeleton } from "#/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "#/components/ui/tabs"
 import { Button } from "#/components/ui/button"
+import { Badge } from "#/components/ui/badge"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "#/components/ui/empty"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "#/components/ui/select"
 
@@ -19,6 +30,14 @@ const CATEGORY_LABELS: Record<CategoryId, string> = {
     areas: "Areas",
     people: "People",
     sessions: "Sessions",
+}
+
+const CATEGORY_ICONS: Record<CategoryId, typeof RiBrainLine> = {
+    you: RiBrainLine,
+    topics: RiPriceTag3Line,
+    areas: RiCompassLine,
+    people: RiUserLine,
+    sessions: RiHistoryLine,
 }
 
 const SORT_LABELS: Record<SortBy, string> = {
@@ -164,21 +183,61 @@ function RouteComponent() {
             ) : (
                 <>
                     <div className="min-h-96 space-y-6">
-                        {groupedMemories.map((group) => (
-                            <section key={group.categoryId} className="space-y-2">
-                                <h2 className="text-sm font-medium text-muted-foreground">
-                                    {CATEGORY_LABELS[group.categoryId]}
-                                </h2>
-                                <div className="space-y-2">
-                                    {group.items.map((memory) => (
-                                        <div key={memory.id} className="rounded-2xl border p-4">
-                                            <p className="font-medium">{memory.displayName}</p>
-                                            <p className="text-muted-foreground text-sm">{memory.description}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        ))}
+                        {groupedMemories.map((group) => {
+                            const CategoryIcon = CATEGORY_ICONS[group.categoryId]
+                            return (
+                                <section key={group.categoryId} className="space-y-2">
+                                    <h2 className="text-sm font-medium text-muted-foreground">
+                                        {CATEGORY_LABELS[group.categoryId]}
+                                    </h2>
+                                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                        {group.items.map((memory) => (
+                                            <div
+                                                key={memory.id}
+                                                className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-xs"
+                                            >
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted">
+                                                            <CategoryIcon className="size-4 text-foreground/70" />
+                                                        </span>
+                                                        <h3 className="font-heading text-sm font-medium">
+                                                            {memory.displayName}
+                                                        </h3>
+                                                    </div>
+                                                    {memory.kind === "toc" ? (
+                                                        <Badge variant="secondary" data-icon="inline-start">
+                                                            <RiListCheck2 />
+                                                            TOC
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge variant="outline" data-icon="inline-start">
+                                                            <RiFileTextLine />
+                                                            Entry
+                                                        </Badge>
+                                                    )}
+                                                </div>
+
+                                                <p className="line-clamp-2 text-sm text-muted-foreground">
+                                                    {memory.description}
+                                                </p>
+
+                                                <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3">
+                                                    <span className="truncate font-mono text-xs text-muted-foreground">
+                                                        {memory.path}
+                                                    </span>
+                                                    <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+                                                        <span>{formatBytes(memory.sizeBytes)}</span>
+                                                        <span>&middot;</span>
+                                                        <span>{formatRelativeTime(memory.updatedAt)}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </section>
+                            )
+                        })}
                     </div>
 
                     {data.total > PAGE_SIZE && (
