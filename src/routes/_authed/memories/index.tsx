@@ -1,7 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router"
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query"
 import { z } from "zod"
-import { RiBrainLine } from "@remixicon/react"
+import { RiAddLine, RiBrainLine } from "@remixicon/react"
 import type { SortBy, SortOrder } from "#/lib/server/memories.function"
 import { getMemoriesFn, sortByEnum, sortOrderEnum } from "#/lib/server/memories.function"
 import { categoryIdEnum } from "#/lib/db/schema/memory-schema"
@@ -25,6 +25,11 @@ const SORT_LABELS: Record<SortBy, string> = {
     updatedAt: "Last updated",
     createdAt: "Date created",
     displayName: "Name",
+}
+
+const SORT_ORDER_LABELS: Record<SortOrder, string> = {
+    desc: "Descending",
+    asc: "Ascending",
 }
 
 const PAGE_SIZE = 20
@@ -105,7 +110,7 @@ function RouteComponent() {
                 <div className="flex items-center gap-2">
                     <Select value={activeSortBy} onValueChange={(value) => setSortBy(value as SortBy)}>
                         <SelectTrigger size="sm">
-                            <SelectValue />
+                            <SelectValue>{(value: SortBy) => SORT_LABELS[value]}</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                             {sortByEnum.map((value) => (
@@ -117,13 +122,20 @@ function RouteComponent() {
                     </Select>
                     <Select value={activeSortOrder} onValueChange={(value) => setSortOrder(value as SortOrder)}>
                         <SelectTrigger size="sm">
-                            <SelectValue />
+                            <SelectValue>{(value: SortOrder) => SORT_ORDER_LABELS[value]}</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="desc">Descending</SelectItem>
-                            <SelectItem value="asc">Ascending</SelectItem>
+                            {sortOrderEnum.map((value) => (
+                                <SelectItem key={value} value={value}>
+                                    {SORT_ORDER_LABELS[value]}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
+                    <Button data-icon="inline-start" nativeButton={false} render={<Link to="/memories/new" />}>
+                        <RiAddLine />
+                        New memory
+                    </Button>
                 </div>
             </div>
 
@@ -183,10 +195,21 @@ function RouteComponent() {
 
 function MemoriesSkeleton() {
     return (
-        <div className="space-y-2 p-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-            ))}
+        <div className="space-y-4 p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <Skeleton className="h-9 w-80 rounded-3xl" />
+                <div className="flex items-center gap-2">
+                    <Skeleton className="h-9 w-32 rounded-3xl" />
+                    <Skeleton className="h-9 w-28 rounded-3xl" />
+                    <Skeleton className="h-9 w-36 rounded-3xl" />
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                ))}
+            </div>
         </div>
     )
 }

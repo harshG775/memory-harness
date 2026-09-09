@@ -14,6 +14,7 @@ import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as PublicSignInRouteImport } from './routes/_public/sign-in'
 import { Route as AuthedMemoriesIndexRouteImport } from './routes/_authed/memories/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AuthedMemoriesNewIndexRouteImport } from './routes/_authed/memories/new/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -39,18 +40,25 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedMemoriesNewIndexRoute = AuthedMemoriesNewIndexRouteImport.update({
+  id: '/memories/new/',
+  path: '/memories/new/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/sign-in': typeof PublicSignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/memories/': typeof AuthedMemoriesIndexRoute
+  '/memories/new/': typeof AuthedMemoriesNewIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sign-in': typeof PublicSignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/memories': typeof AuthedMemoriesIndexRoute
+  '/memories/new': typeof AuthedMemoriesNewIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -59,12 +67,13 @@ export interface FileRoutesById {
   '/_public/sign-in': typeof PublicSignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_authed/memories/': typeof AuthedMemoriesIndexRoute
+  '/_authed/memories/new/': typeof AuthedMemoriesNewIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign-in' | '/api/auth/$' | '/memories/'
+  fullPaths: '/' | '/sign-in' | '/api/auth/$' | '/memories/' | '/memories/new/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sign-in' | '/api/auth/$' | '/memories'
+  to: '/' | '/sign-in' | '/api/auth/$' | '/memories' | '/memories/new'
   id:
     | '__root__'
     | '/'
@@ -72,6 +81,7 @@ export interface FileRouteTypes {
     | '/_public/sign-in'
     | '/api/auth/$'
     | '/_authed/memories/'
+    | '/_authed/memories/new/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -118,15 +128,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/memories/new/': {
+      id: '/_authed/memories/new/'
+      path: '/memories/new'
+      fullPath: '/memories/new/'
+      preLoaderRoute: typeof AuthedMemoriesNewIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
   }
 }
 
 interface AuthedRouteRouteChildren {
   AuthedMemoriesIndexRoute: typeof AuthedMemoriesIndexRoute
+  AuthedMemoriesNewIndexRoute: typeof AuthedMemoriesNewIndexRoute
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedMemoriesIndexRoute: AuthedMemoriesIndexRoute,
+  AuthedMemoriesNewIndexRoute: AuthedMemoriesNewIndexRoute,
 }
 
 const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
