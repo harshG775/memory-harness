@@ -4,7 +4,7 @@ import { authedMiddleware } from "./auth.middleware"
 import { z } from "zod"
 import { categoryIdEnum, memory } from "../db/schema/memory-schema"
 import { db } from "../db"
-import { and, asc, count, desc, eq, isNull } from "drizzle-orm"
+import { and, asc, count, desc, eq, isNull, sql } from "drizzle-orm"
 import { fileTemplate, slugify } from "../memory/templates"
 
 export const sortByEnum = ["updatedAt", "createdAt", "displayName"] as const
@@ -20,6 +20,20 @@ const SORT_COLUMNS = {
 } as const
 
 export const creatableCategoryIdEnum = categoryIdEnum.enumValues.filter((categoryId) => categoryId !== "you")
+
+const memoryFieldsSchema = z.object({
+    categoryId: z.enum(creatableCategoryIdEnum),
+    displayName: z.string().trim().min(1).max(200),
+    description: z.string().trim().min(1).max(500),
+    content: z.string().default(""),
+})
+
+function buildMemoryFields(data: z.infer<typeof memoryFieldsSchema>) {
+    const path = `${data.categoryId}/${slugify(data.displayName)}.md`
+    const content = fileTemplate(data.displayName, data.description) + data.content
+    const sizeBytes = new TextEncoder().encode(content).length
+    return { path, content, sizeBytes }
+}
 
 export const getMemoriesFn = createServerFn({ method: "GET" })
     .middleware([authedMiddleware])
@@ -62,25 +76,26 @@ export const getMemoriesFn = createServerFn({ method: "GET" })
         }
     })
 
-export const getMemoryByIdFn = createServerFn()
+export const getMemoryByIdFn = createServerFn({ method: "GET" })
     .middleware([authedMiddleware])
-    .validator(z.object({}))
-    .handler(() => {})
+    .validator(z.object({ id: z.string() }))
+    .handler(async ({ context, data }) => {
+        const [found] = await db
+            .select()
+            .from(memory)
+            .where(
+                and(eq(memory.id, data.id), eq(memory.userId, context.session.user.id), isNull(memory.deletedAt)),
+            )
+            .limit(1)
+
+        return found ?? null
+    })
 
 export const createMemoryFn = createServerFn({ method: "POST" })
     .middleware([authedMiddleware])
-    .validator(
-        z.object({
-            categoryId: z.enum(creatableCategoryIdEnum),
-            displayName: z.string().trim().min(1).max(200),
-            description: z.string().trim().min(1).max(500),
-            content: z.string().default(""),
-        }),
-    )
+    .validator(memoryFieldsSchema)
     .handler(async ({ context, data }) => {
-        const path = `${data.categoryId}/${slugify(data.displayName)}.md`
-        const content = fileTemplate(data.displayName, data.description) + data.content
-        const sizeBytes = new TextEncoder().encode(content).length
+        const { path, content, sizeBytes } = buildMemoryFields(data)
 
         const [created] = await db
             .insert(memory)
@@ -99,12 +114,35 @@ export const createMemoryFn = createServerFn({ method: "POST" })
         return created
     })
 
-export const updateMemoryFn = createServerFn()
+export const updateMemoryFn = createServerFn({ method: "POST" })
     .middleware([authedMiddleware])
-    .validator(z.object({}))
-    .handler(() => {})
+    .validator(memoryFieldsSchema.extend({ id: z.string() }))
+    .handler(async ({ context, data }) => {
+        const { path, content, sizeBytes } = buildMemoryFields(data)
 
-export const deleteMemoryFn = createServerFn()
+        const [updated] = await db
+            .update(memory)
+            .set({
+                categoryId: data.categoryId,
+                displayName: data.displayName,
+                description: data.description,
+                content,
+                path,
+                sizeBytes,
+                version: sql`${memory.version} + 1`,
+            })
+            .where(and(eq(memory.id, data.id), eq(memory.userId, context.session.user.id)))
+            .returning()
+
+        return updated ?? null
+    })
+
+export const deleteMemoryFn = createServerFn({ method: "POST" })
     .middleware([authedMiddleware])
-    .validator(z.object({}))
-    .handler(() => {})
+    .validator(z.object({ id: z.string() }))
+    .handler(async ({ context, data }) => {
+        await db
+            .update(memory)
+            .set({ deletedAt: new Date() })
+            .where(and(eq(memory.id, data.id), eq(memory.userId, context.session.user.id)))
+    })

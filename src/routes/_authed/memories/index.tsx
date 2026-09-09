@@ -1,19 +1,13 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router"
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query"
+import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
 import { z } from "zod"
-import {
-    RiAddLine,
-    RiBrainLine,
-    RiPriceTag3Line,
-    RiCompassLine,
-    RiUserLine,
-    RiHistoryLine,
-    RiFileTextLine,
-    RiListCheck2,
-} from "@remixicon/react"
+import { RiAddLine, RiBrainLine, RiFileTextLine, RiListCheck2, RiMore2Line, RiDeleteBinLine } from "@remixicon/react"
 import type { SortBy, SortOrder } from "#/lib/server/memories.function"
-import { getMemoriesFn, sortByEnum, sortOrderEnum } from "#/lib/server/memories.function"
+import { deleteMemoryFn, getMemoriesFn, sortByEnum, sortOrderEnum } from "#/lib/server/memories.function"
+import type { Memory } from "#/lib/db/schema/memory-schema"
 import { categoryIdEnum } from "#/lib/db/schema/memory-schema"
+import type { CategoryId } from "#/lib/memory/category"
+import { CATEGORY_LABELS, CATEGORY_ICONS } from "#/lib/memory/category"
 import { formatBytes, formatRelativeTime } from "#/lib/memory/format"
 import { Skeleton } from "#/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "#/components/ui/tabs"
@@ -21,24 +15,12 @@ import { Button } from "#/components/ui/button"
 import { Badge } from "#/components/ui/badge"
 import { Empty, EmptyHeader, EmptyMedia, EmptyTitle, EmptyDescription } from "#/components/ui/empty"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "#/components/ui/select"
-
-type CategoryId = (typeof categoryIdEnum.enumValues)[number]
-
-const CATEGORY_LABELS: Record<CategoryId, string> = {
-    you: "You",
-    topics: "Topics",
-    areas: "Areas",
-    people: "People",
-    sessions: "Sessions",
-}
-
-const CATEGORY_ICONS: Record<CategoryId, typeof RiBrainLine> = {
-    you: RiBrainLine,
-    topics: RiPriceTag3Line,
-    areas: RiCompassLine,
-    people: RiUserLine,
-    sessions: RiHistoryLine,
-}
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "#/components/ui/dropdown-menu"
 
 const SORT_LABELS: Record<SortBy, string> = {
     updatedAt: "Last updated",
@@ -192,47 +174,7 @@ function RouteComponent() {
                                     </h2>
                                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                         {group.items.map((memory) => (
-                                            <div
-                                                key={memory.id}
-                                                className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-xs"
-                                            >
-                                                <div className="flex items-start justify-between gap-2">
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted">
-                                                            <CategoryIcon className="size-4 text-foreground/70" />
-                                                        </span>
-                                                        <h3 className="font-heading text-sm font-medium">
-                                                            {memory.displayName}
-                                                        </h3>
-                                                    </div>
-                                                    {memory.kind === "toc" ? (
-                                                        <Badge variant="secondary" data-icon="inline-start">
-                                                            <RiListCheck2 />
-                                                            TOC
-                                                        </Badge>
-                                                    ) : (
-                                                        <Badge variant="outline" data-icon="inline-start">
-                                                            <RiFileTextLine />
-                                                            Entry
-                                                        </Badge>
-                                                    )}
-                                                </div>
-
-                                                <p className="line-clamp-2 text-sm text-muted-foreground">
-                                                    {memory.description}
-                                                </p>
-
-                                                <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3">
-                                                    <span className="truncate font-mono text-xs text-muted-foreground">
-                                                        {memory.path}
-                                                    </span>
-                                                    <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
-                                                        <span>{formatBytes(memory.sizeBytes)}</span>
-                                                        <span>&middot;</span>
-                                                        <span>{formatRelativeTime(memory.updatedAt)}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <MemoryCard key={memory.id} memory={memory} CategoryIcon={CategoryIcon} />
                                         ))}
                                     </div>
                                 </section>
@@ -267,6 +209,78 @@ function RouteComponent() {
                     )}
                 </>
             )}
+        </div>
+    )
+}
+
+function MemoryCard({ memory, CategoryIcon }: { memory: Memory; CategoryIcon: typeof RiBrainLine }) {
+    const queryClient = useQueryClient()
+
+    const { mutate: deleteMemory, isPending: isDeleting } = useMutation({
+        mutationFn: deleteMemoryFn,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["memories"] }),
+    })
+
+    return (
+        <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 text-card-foreground shadow-xs">
+            <div className="flex items-start justify-between gap-2">
+                <Link
+                    to="/memories/$memory_id"
+                    params={{ memory_id: memory.id }}
+                    className="flex min-w-0 items-center gap-2 hover:underline"
+                >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted">
+                        <CategoryIcon className="size-4 text-foreground/70" />
+                    </span>
+                    <h3 className="truncate font-heading text-sm font-medium">{memory.displayName}</h3>
+                </Link>
+
+                <div className="flex items-center gap-1">
+                    {memory.kind === "toc" ? (
+                        <Badge variant="secondary" data-icon="inline-start">
+                            <RiListCheck2 />
+                            TOC
+                        </Badge>
+                    ) : (
+                        <Badge variant="outline" data-icon="inline-start">
+                            <RiFileTextLine />
+                            Entry
+                        </Badge>
+                    )}
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger
+                            render={
+                                <Button variant="ghost" size="icon-sm" disabled={isDeleting}>
+                                    <RiMore2Line />
+                                    <span className="sr-only">Memory actions</span>
+                                </Button>
+                            }
+                        />
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                                variant="destructive"
+                                data-icon="inline-start"
+                                onClick={() => deleteMemory({ data: { id: memory.id } })}
+                            >
+                                <RiDeleteBinLine />
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
+
+            <p className="line-clamp-2 text-sm text-muted-foreground">{memory.description}</p>
+
+            <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3">
+                <span className="truncate font-mono text-xs text-muted-foreground">{memory.path}</span>
+                <div className="flex shrink-0 items-center gap-2 text-xs text-muted-foreground">
+                    <span>{formatBytes(memory.sizeBytes)}</span>
+                    <span>&middot;</span>
+                    <span>{formatRelativeTime(memory.updatedAt)}</span>
+                </div>
+            </div>
         </div>
     )
 }

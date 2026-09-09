@@ -14,6 +14,7 @@ import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as PublicSignInRouteImport } from './routes/_public/sign-in'
 import { Route as AuthedMemoriesIndexRouteImport } from './routes/_authed/memories/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AuthedMemoriesMemory_idIndexRouteImport } from './routes/_authed/memories/$memory_id/index'
 import { Route as AuthedMemoriesNewIndexRouteImport } from './routes/_authed/memories/new/index'
 
 const IndexRoute = IndexRouteImport.update({
@@ -40,6 +41,12 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedMemoriesMemory_idIndexRoute =
+  AuthedMemoriesMemory_idIndexRouteImport.update({
+    id: '/memories/$memory_id/',
+    path: '/memories/$memory_id/',
+    getParentRoute: () => AuthedRouteRoute,
+  } as any)
 const AuthedMemoriesNewIndexRoute = AuthedMemoriesNewIndexRouteImport.update({
   id: '/memories/new/',
   path: '/memories/new/',
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof PublicSignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/memories/': typeof AuthedMemoriesIndexRoute
+  '/memories/$memory_id/': typeof AuthedMemoriesMemory_idIndexRoute
   '/memories/new/': typeof AuthedMemoriesNewIndexRoute
 }
 export interface FileRoutesByTo {
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof PublicSignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/memories': typeof AuthedMemoriesIndexRoute
+  '/memories/$memory_id': typeof AuthedMemoriesMemory_idIndexRoute
   '/memories/new': typeof AuthedMemoriesNewIndexRoute
 }
 export interface FileRoutesById {
@@ -67,13 +76,26 @@ export interface FileRoutesById {
   '/_public/sign-in': typeof PublicSignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_authed/memories/': typeof AuthedMemoriesIndexRoute
+  '/_authed/memories/$memory_id/': typeof AuthedMemoriesMemory_idIndexRoute
   '/_authed/memories/new/': typeof AuthedMemoriesNewIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign-in' | '/api/auth/$' | '/memories/' | '/memories/new/'
+  fullPaths:
+    | '/'
+    | '/sign-in'
+    | '/api/auth/$'
+    | '/memories/'
+    | '/memories/$memory_id/'
+    | '/memories/new/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sign-in' | '/api/auth/$' | '/memories' | '/memories/new'
+  to:
+    | '/'
+    | '/sign-in'
+    | '/api/auth/$'
+    | '/memories'
+    | '/memories/$memory_id'
+    | '/memories/new'
   id:
     | '__root__'
     | '/'
@@ -81,6 +103,7 @@ export interface FileRouteTypes {
     | '/_public/sign-in'
     | '/api/auth/$'
     | '/_authed/memories/'
+    | '/_authed/memories/$memory_id/'
     | '/_authed/memories/new/'
   fileRoutesById: FileRoutesById
 }
@@ -128,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/memories/$memory_id/': {
+      id: '/_authed/memories/$memory_id/'
+      path: '/memories/$memory_id'
+      fullPath: '/memories/$memory_id/'
+      preLoaderRoute: typeof AuthedMemoriesMemory_idIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/_authed/memories/new/': {
       id: '/_authed/memories/new/'
       path: '/memories/new'
@@ -140,11 +170,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthedRouteRouteChildren {
   AuthedMemoriesIndexRoute: typeof AuthedMemoriesIndexRoute
+  AuthedMemoriesMemory_idIndexRoute: typeof AuthedMemoriesMemory_idIndexRoute
   AuthedMemoriesNewIndexRoute: typeof AuthedMemoriesNewIndexRoute
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedMemoriesIndexRoute: AuthedMemoriesIndexRoute,
+  AuthedMemoriesMemory_idIndexRoute: AuthedMemoriesMemory_idIndexRoute,
   AuthedMemoriesNewIndexRoute: AuthedMemoriesNewIndexRoute,
 }
 

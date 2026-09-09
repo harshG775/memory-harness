@@ -21,3 +21,7 @@ aliases: []
 
 `
 }
+
+export function stripFrontmatter(content: string): string {
+    return content.replace(/^---\n[\s\S]*?\n---\n\n?/, "")
+}
