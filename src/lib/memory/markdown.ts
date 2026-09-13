@@ -74,7 +74,7 @@ export const parseFrontMatter = (row: string): ParseFrontMatterType => {
     return result
 }
 
-const quote = (value: string): string => `'${value.replace(/'/g, "''")}'`
+const quote = (value: string): string => `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`
 
 const stringifyArray = (items: string[]): string => `[${items.map(quote).join(", ")}]`
 
