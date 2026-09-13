@@ -14,7 +14,7 @@ import { creatableCategoryIdEnum, deleteMemoryFn, getMemoryByIdFn, updateMemoryF
 import { parseMarkdown, stringifyMarkdown } from "#/lib/memory/markdown"
 import type { CategoryId } from "#/lib/memory/category"
 import { CATEGORY_LABELS, CATEGORY_ICONS } from "#/lib/memory/category"
-import { formatBytes, formatRelativeTime } from "#/lib/memory/format"
+import { formatBytes, formatRelativeTime } from "#/lib/formatter"
 import { cn } from "#/lib/utils"
 import { Button } from "#/components/ui/button"
 import { Badge } from "#/components/ui/badge"
