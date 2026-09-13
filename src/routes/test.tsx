@@ -3,6 +3,7 @@ import { Input } from "#/components/ui/input"
 import { Label } from "#/components/ui/label"
 import { TagsInput } from "#/components/ui/tag-input"
 import { Textarea } from "#/components/ui/textarea"
+import { stringifyMarkdown } from "#/lib/memory/markdown"
 import { cn } from "#/lib/utils"
 import { RiArrowLeftLine, RiFileTextLine, RiListCheck2, RiPriceTag3Line } from "@remixicon/react"
 import { createFileRoute, Link } from "@tanstack/react-router"
@@ -54,7 +55,8 @@ function RouteComponent() {
             },
             content,
         }
-        console.log(payload)
+        const markdown = stringifyMarkdown(payload)
+        console.log("final markdown:\n", markdown)
 
         // createMemoryFn(payload)
     }
@@ -80,9 +82,9 @@ function RouteComponent() {
                         handleSubmit(e)
                     }}
                 >
-                    <div className={cn("flex flex-col gap-0.5 rounded-2xl border border-border bg-card p-3")}>
+                    <div className={cn("flex flex-col gap-2 rounded-2xl border border-border bg-card p-3")}>
                         <div>
-                            <span className="px-2 pb-1 text-xs font-medium text-muted-foreground">Properties</span>
+                            <div className="text-sm font-medium mb-1">Properties</div>
                             <PropertyRow icon={RiFileTextLine} label="Name" required>
                                 <Input
                                     value={name}

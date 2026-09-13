@@ -74,6 +74,21 @@ const parseFrontMatter = (row: string): ParseFrontMatterType => {
     return result
 }
 
+const quote = (value: string): string => `'${value.replace(/'/g, "''")}'`
+
+const stringifyArray = (items: string[]): string => `[${items.map(quote).join(", ")}]`
+
+export const stringifyMarkdown = ({ frontmatter, content }: ParseMarkdownType): string => {
+    const lines = [
+        `name: ${quote(frontmatter.name)}`,
+        `description: ${quote(frontmatter.description)}`,
+        `sources: ${stringifyArray(frontmatter.sources)}`,
+        `aliases: ${stringifyArray(frontmatter.aliases)}`,
+    ]
+
+    return `---\n${lines.join("\n")}\n---\n\n${content}`
+}
+
 export const parseMarkdown = (raw: string): ParseMarkdownType => {
     const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/)
     if (!match) {
