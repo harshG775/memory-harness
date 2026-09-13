@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
+import { Route as TestRouteImport } from './routes/test'
 import { Route as PublicSignInRouteImport } from './routes/_public/sign-in'
 import { Route as AuthedMemoriesIndexRouteImport } from './routes/_authed/memories/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthedRouteRoute = AuthedRouteRouteImport.update({
   id: '/_authed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestRoute = TestRouteImport.update({
+  id: '/test',
+  path: '/test',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PublicSignInRoute = PublicSignInRouteImport.update({
@@ -55,6 +61,7 @@ const AuthedMemoriesNewIndexRoute = AuthedMemoriesNewIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/test': typeof TestRoute
   '/sign-in': typeof PublicSignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/memories/': typeof AuthedMemoriesIndexRoute
@@ -63,6 +70,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/test': typeof TestRoute
   '/sign-in': typeof PublicSignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/memories': typeof AuthedMemoriesIndexRoute
@@ -73,6 +81,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteRouteWithChildren
+  '/test': typeof TestRoute
   '/_public/sign-in': typeof PublicSignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_authed/memories/': typeof AuthedMemoriesIndexRoute
@@ -83,6 +92,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/test'
     | '/sign-in'
     | '/api/auth/$'
     | '/memories/'
@@ -91,6 +101,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/test'
     | '/sign-in'
     | '/api/auth/$'
     | '/memories'
@@ -100,6 +111,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authed'
+    | '/test'
     | '/_public/sign-in'
     | '/api/auth/$'
     | '/_authed/memories/'
@@ -110,6 +122,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
+  TestRoute: typeof TestRoute
   PublicSignInRoute: typeof PublicSignInRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test': {
+      id: '/test'
+      path: '/test'
+      fullPath: '/test'
+      preLoaderRoute: typeof TestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_public/sign-in': {
@@ -187,6 +207,7 @@ const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRouteRoute: AuthedRouteRouteWithChildren,
+  TestRoute: TestRoute,
   PublicSignInRoute: PublicSignInRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
