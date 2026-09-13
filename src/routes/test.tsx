@@ -3,11 +3,15 @@ import { Input } from "#/components/ui/input"
 import { Label } from "#/components/ui/label"
 import { TagsInput } from "#/components/ui/tag-input"
 import { Textarea } from "#/components/ui/textarea"
+import { CATEGORY_LABELS } from "#/lib/memory/category"
+import type { CategoryId } from "#/lib/memory/category"
 import { stringifyMarkdown } from "#/lib/memory/markdown"
 import { cn } from "#/lib/utils"
 import { RiArrowLeftLine, RiFileTextLine, RiListCheck2, RiPriceTag3Line } from "@remixicon/react"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useState } from "react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "#/components/ui/select"
+import { creatableCategoryIdEnum } from "#/lib/server/memories.function"
 
 export const Route = createFileRoute("/test")({
     component: RouteComponent,
@@ -19,6 +23,8 @@ type PropertyRowProps = {
     required?: boolean
     children: React.ReactNode
 }
+
+type CreatableCategoryId = (typeof creatableCategoryIdEnum)[number]
 
 function PropertyRow({ icon: Icon, label, required, children }: PropertyRowProps) {
     return (
@@ -39,6 +45,8 @@ const ghostTagsInputClassName =
     "min-h-7 rounded-md border-none bg-transparent px-1.5 py-0.5 shadow-none has-[input:focus-visible]:bg-background has-[input:focus-visible]:ring-1"
 
 function RouteComponent() {
+    const [categoryId, setCategoryId] = useState<CreatableCategoryId>(creatableCategoryIdEnum[0])
+
     const [name, setName] = useState("")
     const [description, setDescription] = useState("")
     const [sources, setSources] = useState<string[]>([])
@@ -47,6 +55,7 @@ function RouteComponent() {
 
     const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
         const payload = {
+            categoryId,
             frontmatter: {
                 name,
                 description,
@@ -55,10 +64,21 @@ function RouteComponent() {
             },
             content,
         }
-        const markdown = stringifyMarkdown(payload)
-        console.log("final markdown:\n", markdown)
 
+        // frontend
         // createMemoryFn(payload)
+
+        // backend
+        const markdown = stringifyMarkdown({
+            frontmatter: {
+                name,
+                description,
+                sources,
+                aliases,
+            },
+            content,
+        })
+        console.log("final markdown content:\n", markdown)
     }
     return (
         <div className="p-4">
@@ -83,9 +103,28 @@ function RouteComponent() {
                         handleSubmit(e)
                     }}
                 >
-                    <div className={cn("flex flex-col gap-2 rounded-2xl border border-border bg-card p-3")}>
-                        <div>
-                            <div className="text-sm font-medium mb-1">Properties</div>
+                    <div className="flex flex-col gap-6">
+                        <div className="flex flex-col gap-1.5">
+                            <Label htmlFor="category">Category</Label>
+                            <Select
+                                value={categoryId}
+                                onValueChange={(value) => setCategoryId(value as CreatableCategoryId)}
+                            >
+                                <SelectTrigger id="category" className="w-full">
+                                    <SelectValue>{(value: CategoryId) => CATEGORY_LABELS[value]}</SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {creatableCategoryIdEnum.map((value) => (
+                                        <SelectItem key={value} value={value}>
+                                            {CATEGORY_LABELS[value]}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className={cn("flex flex-col gap-0.5 rounded-2xl border border-border bg-card p-3")}>
+                            <div className="mb-1 text-sm font-medium">Properties</div>
                             <PropertyRow icon={RiFileTextLine} label="Name" required>
                                 <Input
                                     value={name}
@@ -120,6 +159,7 @@ function RouteComponent() {
                                 />
                             </PropertyRow>
                         </div>
+
                         <div className="flex flex-col gap-1.5">
                             <Label htmlFor="content">Content</Label>
                             <Textarea
