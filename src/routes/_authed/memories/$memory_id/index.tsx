@@ -52,7 +52,7 @@ function RouteComponent() {
     const [categoryId, setCategoryId] = useState<CreatableCategoryId>(
         (memory?.categoryId as CreatableCategoryId | undefined) ?? creatableCategoryIdEnum[0],
     )
-    const [displayName, setDisplayName] = useState(memory?.displayName ?? "")
+    const [name, setName] = useState(memory?.name ?? "")
     const [description, setDescription] = useState(memory?.description ?? "")
     const [content, setContent] = useState(memory ? stripFrontmatter(memory.content) : "")
 
@@ -94,7 +94,7 @@ function RouteComponent() {
 
     const startEdit = () => {
         setCategoryId(memory.categoryId as CreatableCategoryId)
-        setDisplayName(memory.displayName)
+        setName(memory.name)
         setDescription(memory.description)
         setContent(stripFrontmatter(memory.content))
         void navigate({ search: (prev) => ({ ...prev, edit: true }) })
@@ -106,7 +106,7 @@ function RouteComponent() {
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
-        saveMemory({ data: { id: memory_id, categoryId, displayName, description, content } })
+        saveMemory({ data: { id: memory_id, categoryId, name, description, content } })
     }
 
     return (
@@ -145,12 +145,12 @@ function RouteComponent() {
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="displayName">Display name</Label>
+                        <Label htmlFor="name">Name</Label>
                         <Input
-                            id="displayName"
+                            id="name"
                             required
-                            value={displayName}
-                            onChange={(event) => setDisplayName(event.target.value)}
+                            value={name}
+                            onChange={(event) => setName(event.target.value)}
                         />
                     </div>
 
@@ -197,7 +197,7 @@ function RouteComponent() {
                                 <CategoryIcon className="size-5 text-foreground/70" />
                             </span>
                             <div className="flex flex-col gap-0.5">
-                                <h1 className="font-heading text-lg font-medium">{memory.displayName}</h1>
+                                <h1 className="font-heading text-lg font-medium">{memory.name}</h1>
                                 <span className="font-mono text-xs text-muted-foreground">{memory.path}</span>
                             </div>
                         </div>

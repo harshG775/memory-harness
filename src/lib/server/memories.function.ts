@@ -7,7 +7,7 @@ import { db } from "../db"
 import { and, asc, count, desc, eq, isNull, sql } from "drizzle-orm"
 import { fileTemplate, slugify } from "../memory/templates"
 
-export const sortByEnum = ["updatedAt", "createdAt", "displayName"] as const
+export const sortByEnum = ["updatedAt", "createdAt", "name"] as const
 export type SortBy = (typeof sortByEnum)[number]
 
 export const sortOrderEnum = ["asc", "desc"] as const
@@ -16,21 +16,21 @@ export type SortOrder = (typeof sortOrderEnum)[number]
 const SORT_COLUMNS = {
     updatedAt: memory.updatedAt,
     createdAt: memory.createdAt,
-    displayName: memory.displayName,
+    name: memory.name,
 } as const
 
 export const creatableCategoryIdEnum = categoryIdEnum.enumValues.filter((categoryId) => categoryId !== "you")
 
 const memoryFieldsSchema = z.object({
     categoryId: z.enum(creatableCategoryIdEnum),
-    displayName: z.string().trim().min(1).max(200),
+    name: z.string().trim().min(1).max(200),
     description: z.string().trim().min(1).max(500),
     content: z.string().default(""),
 })
 
 function buildMemoryFields(data: z.infer<typeof memoryFieldsSchema>) {
-    const path = `${data.categoryId}/${slugify(data.displayName)}.md`
-    const content = fileTemplate(data.displayName, data.description) + data.content
+    const path = `${data.categoryId}/${slugify(data.name)}.md`
+    const content = fileTemplate(data.name, data.description) + data.content
     const sizeBytes = new TextEncoder().encode(content).length
     return { path, content, sizeBytes }
 }
@@ -97,7 +97,7 @@ export const createMemoryFn = createServerFn({ method: "POST" })
                 path,
                 sizeBytes,
                 categoryId: data.categoryId,
-                displayName: data.displayName,
+                name: data.name,
                 description: data.description,
                 content,
             })
@@ -116,7 +116,7 @@ export const updateMemoryFn = createServerFn({ method: "POST" })
             .update(memory)
             .set({
                 categoryId: data.categoryId,
-                displayName: data.displayName,
+                name: data.name,
                 description: data.description,
                 content,
                 path,

@@ -11,9 +11,9 @@ function yamlString(value: string): string {
     return `"${escaped}"`
 }
 
-export function fileTemplate(displayName: string, description = ""): string {
+export function fileTemplate(name: string, description = ""): string {
     return `---
-name: ${slugify(displayName)}
+name: ${slugify(name)}
 description: ${yamlString(description)}
 sources: []
 aliases: []

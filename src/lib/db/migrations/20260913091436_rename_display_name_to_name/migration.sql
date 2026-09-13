@@ -1,0 +1,1 @@
+ALTER TABLE "memory" RENAME COLUMN "display_name" TO "name";

@@ -22,7 +22,7 @@ export const memory = pgTable(
         kind: memoryKindEnum("kind").notNull().default("entry"),
 
         //
-        displayName: text("display_name").notNull(),
+        name: text("name").notNull(),
         description: text("description").notNull(),
         content: text("content").notNull().default(""),
 

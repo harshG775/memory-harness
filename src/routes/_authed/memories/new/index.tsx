@@ -30,7 +30,7 @@ function RouteComponent() {
     const queryClient = useQueryClient()
 
     const [categoryId, setCategoryId] = useState<CreatableCategoryId>(creatableCategoryIdEnum[0])
-    const [displayName, setDisplayName] = useState("")
+    const [name, setName] = useState("")
     const [description, setDescription] = useState("")
     const [content, setContent] = useState("")
 
@@ -44,7 +44,7 @@ function RouteComponent() {
 
     function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
-        mutate({ data: { categoryId, displayName, description, content } })
+        mutate({ data: { categoryId, name, description, content } })
     }
 
     return (
@@ -83,12 +83,12 @@ function RouteComponent() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="displayName">Display name</Label>
+                    <Label htmlFor="name">Name</Label>
                     <Input
-                        id="displayName"
+                        id="name"
                         required
-                        value={displayName}
-                        onChange={(event) => setDisplayName(event.target.value)}
+                        value={name}
+                        onChange={(event) => setName(event.target.value)}
                     />
                 </div>
 

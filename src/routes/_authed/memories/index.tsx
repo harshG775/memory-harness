@@ -26,7 +26,7 @@ import {
 const SORT_LABELS: Record<SortBy, string> = {
     updatedAt: "Last updated",
     createdAt: "Date created",
-    displayName: "Name",
+    name: "Name",
 }
 
 const SORT_ORDER_LABELS: Record<SortOrder, string> = {
@@ -233,7 +233,7 @@ function MemoryCard({ memory, CategoryIcon }: { memory: Memory; CategoryIcon: ty
                     <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted">
                         <CategoryIcon className="size-4 text-foreground/70" />
                     </span>
-                    <h3 className="truncate font-heading text-sm font-medium">{memory.displayName}</h3>
+                    <h3 className="truncate font-heading text-sm font-medium">{memory.name}</h3>
                 </Link>
 
                 <div className="flex items-center gap-1">
