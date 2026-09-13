@@ -10,7 +10,12 @@ import {
     RiDeleteBinLine,
     RiPencilLine,
 } from "@remixicon/react"
-import { creatableCategoryIdEnum, deleteMemoryFn, getMemoryByIdFn, updateMemoryFn } from "#/lib/server/memories.function"
+import {
+    creatableCategoryIdEnum,
+    deleteMemoryFn,
+    getMemoryByIdFn,
+    updateMemoryFn,
+} from "#/lib/server/memories.function"
 import { parseMarkdown, stringifyMarkdown } from "#/lib/memory/markdown"
 import type { CategoryId } from "#/lib/memory/category"
 import { CATEGORY_LABELS, CATEGORY_ICONS } from "#/lib/memory/category"
@@ -161,155 +166,156 @@ function RouteComponent() {
                 Memories
             </button>
 
-            {isEditing ? (
-                <form onSubmit={handleSubmit}>
-                    <div className="flex flex-col gap-6">
-                        <div className="flex flex-col gap-1.5">
-                            <Label htmlFor="category">Category</Label>
-                            <Select
-                                value={categoryId}
-                                onValueChange={(value) => setCategoryId(value as CreatableCategoryId)}
-                            >
-                                <SelectTrigger id="category" className="w-full">
-                                    <SelectValue>{(value: CategoryId) => CATEGORY_LABELS[value]}</SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {creatableCategoryIdEnum.map((value) => (
-                                        <SelectItem key={value} value={value}>
-                                            {CATEGORY_LABELS[value]}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="flex flex-col gap-0.5 rounded-2xl border border-border bg-card p-3">
-                            <div className="mb-1 text-sm font-medium">Properties</div>
-                            <PropertyRow icon={RiFileTextLine} label="Name" required>
-                                <Input
-                                    value={name}
-                                    placeholder="Empty"
-                                    required
-                                    onChange={(event) => setName(event.target.value)}
-                                    className={ghostInputClassName}
-                                />
-                            </PropertyRow>
-                            <PropertyRow icon={RiFileTextLine} label="Description">
-                                <Input
-                                    value={description}
-                                    placeholder="Empty"
-                                    onChange={(event) => setDescription(event.target.value)}
-                                    className={ghostInputClassName}
-                                />
-                            </PropertyRow>
-                            <PropertyRow icon={RiListCheck2} label="Sources">
-                                <TagsInput
-                                    value={sources}
-                                    onValueChange={setSources}
-                                    className={ghostTagsInputClassName}
-                                    placeholder="Empty"
-                                />
-                            </PropertyRow>
-                            <PropertyRow icon={RiPriceTag3Line} label="Aliases">
-                                <TagsInput
-                                    value={aliases}
-                                    onValueChange={setAliases}
-                                    className={ghostTagsInputClassName}
-                                    placeholder="Empty"
-                                />
-                            </PropertyRow>
-                        </div>
-
-                        <div className="flex flex-col gap-1.5">
-                            <Label htmlFor="content">Content</Label>
-                            <Textarea
-                                id="content"
-                                className="min-h-40"
-                                value={content}
-                                onChange={(event) => setContent(event.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    {saveError && <p className="text-sm text-destructive">{saveError.message}</p>}
-
-                    <div className="flex justify-end gap-2 pt-4">
-                        <Button type="button" variant="outline" onClick={cancelEdit} disabled={isSaving}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={isSaving}>
-                            {isSaving ? "Saving..." : "Save"}
-                        </Button>
-                    </div>
-                </form>
-            ) : (
-                <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted">
-                                <CategoryIcon className="size-5 text-foreground/70" />
-                            </span>
-                            <div className="flex flex-col gap-0.5">
-                                <h1 className="font-heading text-lg font-medium">{memory.name}</h1>
-                                <span className="font-mono text-xs text-muted-foreground">{memory.path}</span>
-                            </div>
-                        </div>
-
-                        <div className="flex shrink-0 items-center gap-2">
-                            <Badge variant="outline">{CATEGORY_LABELS[memory.categoryId]}</Badge>
-                            {memory.kind === "toc" ? (
-                                <Badge variant="secondary" data-icon="inline-start">
-                                    <RiListCheck2 />
-                                    TOC
-                                </Badge>
-                            ) : (
-                                <Badge variant="outline" data-icon="inline-start">
-                                    <RiFileTextLine />
-                                    Entry
-                                </Badge>
-                            )}
-                        </div>
-                    </div>
-
-                    <p className="text-sm text-muted-foreground">{memory.description}</p>
-
-                    <div className="flex items-center gap-3 border-y border-border py-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                            <span
-                                className={cn(
-                                    "size-1.5 rounded-full",
-                                    memory.embedding ? "bg-emerald-500" : "bg-muted-foreground/40",
-                                )}
-                            />
-                            {memory.embedding ? "Embedded" : "Not embedded"}
+            <form
+                onSubmit={handleSubmit}
+                className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs"
+            >
+                <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted">
+                            <CategoryIcon className="size-5 text-foreground/70" />
                         </span>
-                        <span>&middot;</span>
-                        <span>{formatBytes(memory.sizeBytes)}</span>
-                        <span>&middot;</span>
-                        <span>Updated {formatRelativeTime(memory.updatedAt)}</span>
+                        <div className="flex flex-col gap-0.5">
+                            <h1 className="font-heading text-lg font-medium">{memory.name}</h1>
+                            <span className="font-mono text-xs text-muted-foreground">{memory.path}</span>
+                        </div>
                     </div>
 
-                    <pre className="overflow-x-auto rounded-2xl bg-muted p-4 text-sm whitespace-pre-wrap text-foreground/90">
-                        {memory.content}
-                    </pre>
-
-                    <div className="flex justify-end gap-2">
-                        <Button variant="outline" data-icon="inline-start" onClick={startEdit}>
-                            <RiPencilLine />
-                            Edit
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            data-icon="inline-start"
-                            disabled={isDeleting}
-                            onClick={() => deleteMemory({ data: { id: memory.id } })}
-                        >
-                            <RiDeleteBinLine />
-                            {isDeleting ? "Deleting..." : "Delete"}
-                        </Button>
+                    <div className="flex shrink-0 items-center gap-2">
+                        {memory.kind === "toc" ? (
+                            <Badge variant="secondary" data-icon="inline-start">
+                                <RiListCheck2 />
+                                TOC
+                            </Badge>
+                        ) : (
+                            <Badge variant="outline" data-icon="inline-start">
+                                <RiFileTextLine />
+                                Entry
+                            </Badge>
+                        )}
                     </div>
                 </div>
-            )}
+
+                <div className="flex items-center gap-3 border-y border-border py-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                        <span
+                            className={cn(
+                                "size-1.5 rounded-full",
+                                memory.embedding ? "bg-emerald-500" : "bg-muted-foreground/40",
+                            )}
+                        />
+                        {memory.embedding ? "Embedded" : "Not embedded"}
+                    </span>
+                    <span>&middot;</span>
+                    <span>{formatBytes(memory.sizeBytes)}</span>
+                    <span>&middot;</span>
+                    <span>Updated {formatRelativeTime(memory.updatedAt)}</span>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="category">Category</Label>
+                    <Select
+                        value={categoryId}
+                        onValueChange={(value) => setCategoryId(value as CreatableCategoryId)}
+                        disabled={!isEditing}
+                    >
+                        <SelectTrigger id="category" className="w-fit">
+                            <SelectValue>{(value: CategoryId) => CATEGORY_LABELS[value]}</SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                            {creatableCategoryIdEnum.map((value) => (
+                                <SelectItem key={value} value={value}>
+                                    {CATEGORY_LABELS[value]}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="flex flex-col gap-0.5 rounded-2xl border border-border bg-card p-3">
+                    <div className="mb-1 text-sm font-medium">Properties</div>
+                    <PropertyRow icon={RiFileTextLine} label="Name" required>
+                        <Input
+                            value={name}
+                            placeholder="Empty"
+                            required
+                            readOnly={!isEditing}
+                            onChange={(event) => setName(event.target.value)}
+                            className={ghostInputClassName}
+                        />
+                    </PropertyRow>
+                    <PropertyRow icon={RiFileTextLine} label="Description">
+                        <Input
+                            value={description}
+                            placeholder="Empty"
+                            readOnly={!isEditing}
+                            onChange={(event) => setDescription(event.target.value)}
+                            className={ghostInputClassName}
+                        />
+                    </PropertyRow>
+                    <PropertyRow icon={RiListCheck2} label="Sources">
+                        <TagsInput
+                            value={sources}
+                            onValueChange={setSources}
+                            disabled={!isEditing}
+                            className={ghostTagsInputClassName}
+                            placeholder="Empty"
+                        />
+                    </PropertyRow>
+                    <PropertyRow icon={RiPriceTag3Line} label="Aliases">
+                        <TagsInput
+                            value={aliases}
+                            onValueChange={setAliases}
+                            disabled={!isEditing}
+                            className={ghostTagsInputClassName}
+                            placeholder="Empty"
+                        />
+                    </PropertyRow>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="content">Content</Label>
+                    <Textarea
+                        id="content"
+                        className="min-h-40"
+                        value={content}
+                        readOnly={!isEditing}
+                        onChange={(event) => setContent(event.target.value)}
+                    />
+                </div>
+
+                {saveError && <p className="text-sm text-destructive">{saveError.message}</p>}
+
+                <div className="flex justify-end gap-2">
+                    {isEditing ? (
+                        <>
+                            <Button type="button" variant="outline" onClick={cancelEdit} disabled={isSaving}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={isSaving}>
+                                {isSaving ? "Saving..." : "Save"}
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button type="button" variant="outline" data-icon="inline-start" onClick={startEdit}>
+                                <RiPencilLine />
+                                Edit
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="destructive"
+                                data-icon="inline-start"
+                                disabled={isDeleting}
+                                onClick={() => deleteMemory({ data: { id: memory.id } })}
+                            >
+                                <RiDeleteBinLine />
+                                {isDeleting ? "Deleting..." : "Delete"}
+                            </Button>
+                        </>
+                    )}
+                </div>
+            </form>
         </div>
     )
 }
