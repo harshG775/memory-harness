@@ -66,6 +66,7 @@ function RouteComponent() {
                 <Link
                     to="/memories"
                     className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                    replace
                 >
                     <RiArrowLeftLine className="size-4" />
                     Memories
