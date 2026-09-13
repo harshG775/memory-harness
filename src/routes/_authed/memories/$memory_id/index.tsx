@@ -6,11 +6,12 @@ import {
     RiArrowLeftLine,
     RiFileTextLine,
     RiListCheck2,
+    RiPriceTag3Line,
     RiDeleteBinLine,
     RiPencilLine,
 } from "@remixicon/react"
 import { creatableCategoryIdEnum, deleteMemoryFn, getMemoryByIdFn, updateMemoryFn } from "#/lib/server/memories.function"
-import { stripFrontmatter } from "#/lib/memory/templates"
+import { parseMarkdown, stringifyMarkdown } from "#/lib/memory/markdown"
 import type { CategoryId } from "#/lib/memory/category"
 import { CATEGORY_LABELS, CATEGORY_ICONS } from "#/lib/memory/category"
 import { formatBytes, formatRelativeTime } from "#/lib/memory/format"
@@ -21,8 +22,34 @@ import { Input } from "#/components/ui/input"
 import { Label } from "#/components/ui/label"
 import { Textarea } from "#/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "#/components/ui/select"
+import { TagsInput } from "#/components/ui/tag-input"
 
 type CreatableCategoryId = (typeof creatableCategoryIdEnum)[number]
+
+type PropertyRowProps = {
+    icon: React.ComponentType<{ className?: string }>
+    label: string
+    required?: boolean
+    children: React.ReactNode
+}
+
+function PropertyRow({ icon: Icon, label, required, children }: PropertyRowProps) {
+    return (
+        <div className="group flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-muted/50">
+            <div className="flex w-32 shrink-0 items-center gap-2 text-sm text-muted-foreground">
+                <Icon className="size-4" />
+                {label}
+                {required && <span className="text-destructive">*</span>}
+            </div>
+            <div className="flex-1">{children}</div>
+        </div>
+    )
+}
+
+const ghostInputClassName =
+    "h-7 flex-1 rounded-md border-none bg-transparent px-1.5 shadow-none focus-visible:bg-background focus-visible:ring-1"
+const ghostTagsInputClassName =
+    "min-h-7 rounded-md border-none bg-transparent px-1.5 py-0.5 shadow-none has-[input:focus-visible]:bg-background has-[input:focus-visible]:ring-1"
 
 const memoryQueryOptions = (id: string) =>
     queryOptions({
@@ -54,7 +81,9 @@ function RouteComponent() {
     )
     const [name, setName] = useState(memory?.name ?? "")
     const [description, setDescription] = useState(memory?.description ?? "")
-    const [content, setContent] = useState(memory ? stripFrontmatter(memory.content) : "")
+    const [sources, setSources] = useState<string[]>(memory ? parseMarkdown(memory.content).frontmatter.sources : [])
+    const [aliases, setAliases] = useState<string[]>(memory ? parseMarkdown(memory.content).frontmatter.aliases : [])
+    const [content, setContent] = useState(memory ? parseMarkdown(memory.content).content : "")
 
     const { mutate: deleteMemory, isPending: isDeleting } = useMutation({
         mutationFn: deleteMemoryFn,
@@ -93,10 +122,13 @@ function RouteComponent() {
     }
 
     const startEdit = () => {
+        const parsed = parseMarkdown(memory.content)
         setCategoryId(memory.categoryId as CreatableCategoryId)
-        setName(memory.name)
-        setDescription(memory.description)
-        setContent(stripFrontmatter(memory.content))
+        setName(parsed.frontmatter.name)
+        setDescription(parsed.frontmatter.description)
+        setSources(parsed.frontmatter.sources)
+        setAliases(parsed.frontmatter.aliases)
+        setContent(parsed.content)
         void navigate({ search: (prev) => ({ ...prev, edit: true }) })
     }
 
@@ -106,7 +138,16 @@ function RouteComponent() {
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
-        saveMemory({ data: { id: memory_id, categoryId, name, description, content } })
+        saveMemory({
+            data: {
+                id: memory_id,
+                categoryId,
+                content: stringifyMarkdown({
+                    frontmatter: { name, description, sources, aliases },
+                    content,
+                }),
+            },
+        })
     }
 
     return (
@@ -121,66 +162,78 @@ function RouteComponent() {
             </button>
 
             {isEditing ? (
-                <form
-                    className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 shadow-xs"
-                    onSubmit={handleSubmit}
-                >
-                    <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="category">Category</Label>
-                        <Select
-                            value={categoryId}
-                            onValueChange={(value) => setCategoryId(value as CreatableCategoryId)}
-                        >
-                            <SelectTrigger id="category" className="w-full">
-                                <SelectValue>{(value: CategoryId) => CATEGORY_LABELS[value]}</SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                                {creatableCategoryIdEnum.map((value) => (
-                                    <SelectItem key={value} value={value}>
-                                        {CATEGORY_LABELS[value]}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                <form onSubmit={handleSubmit}>
+                    <div className="flex flex-col gap-6">
+                        <div className="flex flex-col gap-1.5">
+                            <Label htmlFor="category">Category</Label>
+                            <Select
+                                value={categoryId}
+                                onValueChange={(value) => setCategoryId(value as CreatableCategoryId)}
+                            >
+                                <SelectTrigger id="category" className="w-full">
+                                    <SelectValue>{(value: CategoryId) => CATEGORY_LABELS[value]}</SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {creatableCategoryIdEnum.map((value) => (
+                                        <SelectItem key={value} value={value}>
+                                            {CATEGORY_LABELS[value]}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="name">Name</Label>
-                        <Input
-                            id="name"
-                            required
-                            value={name}
-                            onChange={(event) => setName(event.target.value)}
-                        />
-                    </div>
+                        <div className="flex flex-col gap-0.5 rounded-2xl border border-border bg-card p-3">
+                            <div className="mb-1 text-sm font-medium">Properties</div>
+                            <PropertyRow icon={RiFileTextLine} label="Name" required>
+                                <Input
+                                    value={name}
+                                    placeholder="Empty"
+                                    required
+                                    onChange={(event) => setName(event.target.value)}
+                                    className={ghostInputClassName}
+                                />
+                            </PropertyRow>
+                            <PropertyRow icon={RiFileTextLine} label="Description">
+                                <Input
+                                    value={description}
+                                    placeholder="Empty"
+                                    onChange={(event) => setDescription(event.target.value)}
+                                    className={ghostInputClassName}
+                                />
+                            </PropertyRow>
+                            <PropertyRow icon={RiListCheck2} label="Sources">
+                                <TagsInput
+                                    value={sources}
+                                    onValueChange={setSources}
+                                    className={ghostTagsInputClassName}
+                                    placeholder="Empty"
+                                />
+                            </PropertyRow>
+                            <PropertyRow icon={RiPriceTag3Line} label="Aliases">
+                                <TagsInput
+                                    value={aliases}
+                                    onValueChange={setAliases}
+                                    className={ghostTagsInputClassName}
+                                    placeholder="Empty"
+                                />
+                            </PropertyRow>
+                        </div>
 
-                    <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="description">Description</Label>
-                        <Input
-                            id="description"
-                            required
-                            value={description}
-                            onChange={(event) => setDescription(event.target.value)}
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="content">Content</Label>
-                        <p className="text-xs text-muted-foreground">
-                            Frontmatter (name, description, sources, aliases) is generated automatically — write the
-                            memory body below.
-                        </p>
-                        <Textarea
-                            id="content"
-                            className="min-h-40"
-                            value={content}
-                            onChange={(event) => setContent(event.target.value)}
-                        />
+                        <div className="flex flex-col gap-1.5">
+                            <Label htmlFor="content">Content</Label>
+                            <Textarea
+                                id="content"
+                                className="min-h-40"
+                                value={content}
+                                onChange={(event) => setContent(event.target.value)}
+                            />
+                        </div>
                     </div>
 
                     {saveError && <p className="text-sm text-destructive">{saveError.message}</p>}
 
-                    <div className="flex justify-end gap-2 pt-2">
+                    <div className="flex justify-end gap-2 pt-4">
                         <Button type="button" variant="outline" onClick={cancelEdit} disabled={isSaving}>
                             Cancel
                         </Button>

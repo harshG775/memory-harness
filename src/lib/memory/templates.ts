@@ -1,10 +1,5 @@
-export function slugify(value: string): string {
-    return value
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "")
-}
+import { slugify } from "../slugify"
+
 
 function yamlString(value: string): string {
     const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')

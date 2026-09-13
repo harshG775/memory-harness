@@ -1,11 +1,11 @@
-// src/lib/server/memories.function.ts
 import { createServerFn } from "@tanstack/react-start"
 import { authedMiddleware } from "./auth.middleware"
 import { z } from "zod"
 import { categoryIdEnum, memory } from "../db/schema/memory-schema"
 import { db } from "../db"
 import { and, asc, count, desc, eq, isNull, sql } from "drizzle-orm"
-import { fileTemplate, slugify } from "../memory/templates"
+import { parseFrontMatter } from "../memory/markdown"
+import { slugify } from "../slugify"
 
 export const sortByEnum = ["updatedAt", "createdAt", "name"] as const
 export type SortBy = (typeof sortByEnum)[number]
@@ -21,19 +21,10 @@ const SORT_COLUMNS = {
 
 export const creatableCategoryIdEnum = categoryIdEnum.enumValues.filter((categoryId) => categoryId !== "you")
 
-const memoryFieldsSchema = z.object({
+const memoryPayloadSchema = z.object({
     categoryId: z.enum(creatableCategoryIdEnum),
-    name: z.string().trim().min(1).max(200),
-    description: z.string().trim().min(1).max(500),
     content: z.string().default(""),
 })
-
-function buildMemoryFields(data: z.infer<typeof memoryFieldsSchema>) {
-    const path = `${data.categoryId}/${slugify(data.name)}.md`
-    const content = fileTemplate(data.name, data.description) + data.content
-    const sizeBytes = new TextEncoder().encode(content).length
-    return { path, content, sizeBytes }
-}
 
 export const getMemoriesFn = createServerFn({ method: "GET" })
     .middleware([authedMiddleware])
@@ -85,21 +76,21 @@ export const getMemoryByIdFn = createServerFn({ method: "GET" })
 
 export const createMemoryFn = createServerFn({ method: "POST" })
     .middleware([authedMiddleware])
-    .validator(memoryFieldsSchema)
+    .validator(memoryPayloadSchema)
     .handler(async ({ context, data }) => {
-        const { path, content, sizeBytes } = buildMemoryFields(data)
+        const frontmatter = parseFrontMatter(data.content)
 
         const [created] = await db
             .insert(memory)
             .values({
                 id: crypto.randomUUID(),
                 userId: context.session.user.id,
-                path,
-                sizeBytes,
+                path: `${data.categoryId}/${slugify(frontmatter.name)}.md`,
+                sizeBytes: new TextEncoder().encode(data.content).length,
                 categoryId: data.categoryId,
-                name: data.name,
-                description: data.description,
-                content,
+                name: frontmatter.name,
+                description: frontmatter.description,
+                content: data.content,
             })
             .returning()
 
@@ -108,19 +99,19 @@ export const createMemoryFn = createServerFn({ method: "POST" })
 
 export const updateMemoryFn = createServerFn({ method: "POST" })
     .middleware([authedMiddleware])
-    .validator(memoryFieldsSchema.extend({ id: z.string() }))
+    .validator(memoryPayloadSchema.extend({ id: z.string() }))
     .handler(async ({ context, data }) => {
-        const { path, content, sizeBytes } = buildMemoryFields(data)
+        const frontmatter = parseFrontMatter(data.content)
 
         const updated = await db
             .update(memory)
             .set({
                 categoryId: data.categoryId,
-                name: data.name,
-                description: data.description,
-                content,
-                path,
-                sizeBytes,
+                name: frontmatter.name,
+                description: frontmatter.description,
+                content: data.content,
+                path: `${data.categoryId}/${slugify(frontmatter.name)}.md`,
+                sizeBytes: new TextEncoder().encode(data.content).length,
                 version: sql`${memory.version} + 1`,
             })
             .where(and(eq(memory.id, data.id), eq(memory.userId, context.session.user.id)))

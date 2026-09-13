@@ -25,7 +25,7 @@ const parseInlineArray = (value: string): string[] => {
     return inner.split(",").map((item) => unquote(item))
 }
 
-const parseFrontMatter = (row: string): ParseFrontMatterType => {
+export const parseFrontMatter = (row: string): ParseFrontMatterType => {
     const result: ParseFrontMatterType = {
         name: "",
         description: "",
@@ -108,3 +108,4 @@ export const parseMarkdown = (raw: string): ParseMarkdownType => {
 
     return { frontmatter, content: content.replace(/^\r?\n/, "") }
 }
+
