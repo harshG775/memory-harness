@@ -1,111 +1,110 @@
 // this is testing file dont use in project yet
 type ParseFrontMatterType = {
-    name: string
-    description: string
-    sources: string[]
-    aliases: string[]
-}
+	name: string;
+	description: string;
+	sources: string[];
+	aliases: string[];
+};
 
 type ParseMarkdownType = {
-    frontmatter: ParseFrontMatterType
-    content: string
-}
+	frontmatter: ParseFrontMatterType;
+	content: string;
+};
 
 const unquote = (value: string): string => {
-    const trimmed = value.trim()
-    if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
-        return trimmed.slice(1, -1)
-    }
-    return trimmed
-}
+	const trimmed = value.trim();
+	if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+		return trimmed.slice(1, -1);
+	}
+	return trimmed;
+};
 
 const parseInlineArray = (value: string): string[] => {
-    const inner = value.trim().slice(1, -1).trim()
-    if (!inner) return []
-    return inner.split(",").map((item) => unquote(item))
-}
+	const inner = value.trim().slice(1, -1).trim();
+	if (!inner) return [];
+	return inner.split(",").map((item) => unquote(item));
+};
 
 export const parseFrontMatter = (row: string): ParseFrontMatterType => {
-    const result: ParseFrontMatterType = {
-        name: "",
-        description: "",
-        sources: [],
-        aliases: [],
-    }
+	const result: ParseFrontMatterType = {
+		name: "",
+		description: "",
+		sources: [],
+		aliases: [],
+	};
 
-    const lines = row.split(/\r?\n/)
+	const lines = row.split(/\r?\n/);
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i]
-        const match = line.match(/^(\w+):\s*(.*)$/)
-        if (!match) continue
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i];
+		const match = line.match(/^(\w+):\s*(.*)$/);
+		if (!match) continue;
 
-        const [, key, rawValue] = match
-        const value = rawValue.trim()
+		const [, key, rawValue] = match;
+		const value = rawValue.trim();
 
-        switch (key) {
-            case "name":
-            case "description":
-                result[key] = unquote(value)
-                break
+		switch (key) {
+			case "name":
+			case "description":
+				result[key] = unquote(value);
+				break;
 
-            case "sources":
-            case "aliases":
-                if (value.startsWith("[") && value.endsWith("]")) {
-                    result[key] = parseInlineArray(value)
-                    break
-                }
+			case "sources":
+			case "aliases":
+				if (value.startsWith("[") && value.endsWith("]")) {
+					result[key] = parseInlineArray(value);
+					break;
+				}
 
-                if (value === "") {
-                    const items: string[] = []
-                    while (i + 1 < lines.length && /^\s*-\s*/.test(lines[i + 1])) {
-                        i++
-                        items.push(unquote(lines[i].replace(/^\s*-\s*/, "")))
-                    }
-                    result[key] = items
-                }
-                break
+				if (value === "") {
+					const items: string[] = [];
+					while (i + 1 < lines.length && /^\s*-\s*/.test(lines[i + 1])) {
+						i++;
+						items.push(unquote(lines[i].replace(/^\s*-\s*/, "")));
+					}
+					result[key] = items;
+				}
+				break;
 
-            default:
-                break
-        }
-    }
+			default:
+				break;
+		}
+	}
 
-    return result
-}
+	return result;
+};
 
-const quote = (value: string): string => `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`
+const quote = (value: string): string => `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 
-const stringifyArray = (items: string[]): string => `[${items.map(quote).join(", ")}]`
+const stringifyArray = (items: string[]): string => `[${items.map(quote).join(", ")}]`;
 
 export const stringifyMarkdown = ({ frontmatter, content }: ParseMarkdownType): string => {
-    const lines = [
-        `name: ${quote(frontmatter.name)}`,
-        `description: ${quote(frontmatter.description)}`,
-        `sources: ${stringifyArray(frontmatter.sources)}`,
-        `aliases: ${stringifyArray(frontmatter.aliases)}`,
-    ]
+	const lines = [
+		`name: ${quote(frontmatter.name)}`,
+		`description: ${quote(frontmatter.description)}`,
+		`sources: ${stringifyArray(frontmatter.sources)}`,
+		`aliases: ${stringifyArray(frontmatter.aliases)}`,
+	];
 
-    return `---\n${lines.join("\n")}\n---\n\n${content}`
-}
+	return `---\n${lines.join("\n")}\n---\n\n${content}`;
+};
 
 export const parseMarkdown = (raw: string): ParseMarkdownType => {
-    const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/)
-    if (!match) {
-        return {
-            frontmatter: {
-                name: "",
-                description: "",
-                sources: [],
-                aliases: [],
-            },
-            content: raw,
-        }
-    }
+	const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+	if (!match) {
+		return {
+			frontmatter: {
+				name: "",
+				description: "",
+				sources: [],
+				aliases: [],
+			},
+			content: raw,
+		};
+	}
 
-    const [, frontmatterRaw, content] = match
-    const frontmatter = parseFrontMatter(frontmatterRaw)
+	const [, frontmatterRaw, content] = match;
+	const frontmatter = parseFrontMatter(frontmatterRaw);
 
-    return { frontmatter, content: content.replace(/^\r?\n/, "") }
-}
-
+	return { frontmatter, content: content.replace(/^\r?\n/, "") };
+};
