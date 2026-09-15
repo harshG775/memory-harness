@@ -32,6 +32,7 @@
     "type": "module",
     "devDependencies": {
         "@biomejs/biome": "2.5.13",
+        "@cloudflare/vite-plugin": "^1.54.9",
         "@rolldown/plugin-babel": "^0.2.3",
         "@tanstack/devtools-vite": "latest",
         "@tanstack/router-cli": "^1.167.33",
@@ -43,7 +44,8 @@
         "drizzle-kit": "1.0.0-rc.4",
         "tsx": "^4.23.13",
         "typescript": "^6.0.2",
-        "vite": "^8.2.2"
+        "vite": "^8.2.2",
+        "wrangler": "^4.131.2"
     },
     "dependencies": {
         "@base-ui/react": "^1.8.0",
