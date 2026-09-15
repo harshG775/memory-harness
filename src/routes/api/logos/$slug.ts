@@ -21,22 +21,27 @@ export const Route = createFileRoute("/api/logos/$slug")({
 					return new Response("Not found", { status: 404 });
 				}
 
-				const upstream = await fetch(source, {
-					headers: {
-						"User-Agent": "Mozilla/5.0 (compatible; memory-harness-logo-proxy)",
-					},
-				});
+				try {
+					const upstream = await fetch(source, {
+						headers: {
+							"User-Agent": "Mozilla/5.0 (compatible; memory-harness-logo-proxy)",
+						},
+						signal: AbortSignal.timeout(5000),
+					});
 
-				if (!upstream.ok || !upstream.body) {
+					if (!upstream.ok || !upstream.body) {
+						return new Response("Upstream fetch failed", { status: 502 });
+					}
+
+					return new Response(upstream.body, {
+						headers: {
+							"Content-Type": upstream.headers.get("content-type") ?? "image/svg+xml",
+							"Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+						},
+					});
+				} catch {
 					return new Response("Upstream fetch failed", { status: 502 });
 				}
-
-				return new Response(upstream.body, {
-					headers: {
-						"Content-Type": upstream.headers.get("content-type") ?? "image/svg+xml",
-						"Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
-					},
-				});
 			},
 		},
 	},

@@ -1,6 +1,5 @@
 import { RiAppsLine, RiBrainLine, RiCheckLine, RiShieldKeyholeLine } from "@remixicon/react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { cn } from "cn";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { Button } from "#/components/ui/button";
@@ -11,81 +10,27 @@ import { getSession } from "#/lib/server/auth.functions";
 const APP_NAME = env.VITE_APP_TITLE ?? "Memory Harness";
 
 /**
- * Renders a self-hosted brand SVG (public/logos/*.svg, from simple-icons,
- * CC0) recolored via CSS mask so it follows the light/dark theme instead of
- * staying a flat black shape.
- */
-function BrandMark({ src, className }: { src: string; className?: string }) {
-	return (
-		<span
-			aria-hidden
-			className={cn("inline-block bg-current", className)}
-			style={{
-				maskImage: `url(${src})`,
-				WebkitMaskImage: `url(${src})`,
-				maskRepeat: "no-repeat",
-				WebkitMaskRepeat: "no-repeat",
-				maskPosition: "center",
-				WebkitMaskPosition: "center",
-				maskSize: "contain",
-				WebkitMaskSize: "contain",
-			}}
-		/>
-	);
-}
-
-/**
  * DCR clients rarely send a logo_uri/description (Claude's registration only
  * ever sends `client_name`). This is a hand-maintained registry so we can
  * still show a recognizable logo + description for apps we know, keyed by
  * client_name since client_id changes on every re-registration.
+ *
+ * `logo` points at our own /api/logos/:slug proxy, which fetches each app's
+ * real favicon. These are full-color app icons (not transparent single-path
+ * marks), so they're rendered as a plain image and clipped to a circle by
+ * the Avatar - not recolored via CSS mask (a mask degenerates to a solid
+ * blob for anything with an opaque background, which most favicons have).
  */
-const KNOWN_CLIENTS: Record<string, { logo: string; accent: string; description: string }> = {
-	claude: {
-		logo: "/api/logos/claude",
-		accent: "bg-[#D97757]/15 text-[#D97757]",
-		description: "Anthropic's AI assistant",
-	},
-	"claude code": {
-		logo: "/api/logos/claude-code",
-		accent: "bg-[#D97757]/15 text-[#D97757]",
-		description: "Anthropic's CLI for agentic coding",
-	},
-	chatgpt: {
-		logo: "/api/logos/chatgpt",
-		accent: "bg-foreground/10 text-foreground",
-		description: "OpenAI's ChatGPT",
-	},
-	cursor: {
-		logo: "/api/logos/cursor",
-		accent: "bg-foreground/10 text-foreground",
-		description: "AI code editor",
-	},
-	windsurf: {
-		logo: "/api/logos/windsurf",
-		accent: "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400",
-		description: "AI code editor",
-	},
-	"visual studio code": {
-		logo: "/api/logos/vscode",
-		accent: "bg-sky-500/15 text-sky-600 dark:text-sky-400",
-		description: "VS Code with GitHub Copilot",
-	},
-	jetbrains: {
-		logo: "/api/logos/jetbrains",
-		accent: "bg-foreground/10 text-foreground",
-		description: "JetBrains AI Assistant",
-	},
-	perplexity: {
-		logo: "/api/logos/perplexity",
-		accent: "bg-teal-500/15 text-teal-600 dark:text-teal-400",
-		description: "Perplexity AI",
-	},
-	warp: {
-		logo: "/api/logos/warp",
-		accent: "bg-foreground/10 text-foreground",
-		description: "Warp terminal",
-	},
+const KNOWN_CLIENTS: Record<string, { logo: string; description: string }> = {
+	claude: { logo: "/api/logos/claude", description: "Anthropic's AI assistant" },
+	"claude code": { logo: "/api/logos/claude-code", description: "Anthropic's CLI for agentic coding" },
+	chatgpt: { logo: "/api/logos/chatgpt", description: "OpenAI's ChatGPT" },
+	cursor: { logo: "/api/logos/cursor", description: "AI code editor" },
+	windsurf: { logo: "/api/logos/windsurf", description: "AI code editor" },
+	"visual studio code": { logo: "/api/logos/vscode", description: "VS Code with GitHub Copilot" },
+	jetbrains: { logo: "/api/logos/jetbrains", description: "JetBrains AI Assistant" },
+	perplexity: { logo: "/api/logos/perplexity", description: "Perplexity AI" },
+	warp: { logo: "/api/logos/warp", description: "Warp terminal" },
 };
 
 function getKnownClient(name: string) {
@@ -194,14 +139,10 @@ function RouteComponent() {
 						</span>
 						<span className="h-px w-5 border-t border-dashed border-border" />
 					</div>
-					<Avatar size="lg" className={cn("size-14", !client?.logo_uri && (known?.accent ?? "bg-muted"))}>
-						<AvatarImage src={client?.logo_uri ?? undefined} alt="" />
+					<Avatar size="lg" className="size-14 bg-muted">
+						<AvatarImage src={client?.logo_uri ?? known?.logo ?? undefined} alt="" />
 						<AvatarFallback className="bg-transparent">
-							{known ? (
-								<BrandMark src={known.logo} className={cn("size-6", known.accent)} />
-							) : (
-								<RiAppsLine className="size-6 text-muted-foreground" />
-							)}
+							<RiAppsLine className="size-6 text-muted-foreground" />
 						</AvatarFallback>
 					</Avatar>
 				</div>
@@ -256,8 +197,8 @@ function RouteComponent() {
 
 				<Button
 					type="button"
-					variant="ghost"
-					className="mt-2 w-full text-muted-foreground"
+					variant="outline"
+					className="mt-2 w-full"
 					disabled={isPending !== null}
 					onClick={() => respond(false)}
 				>
