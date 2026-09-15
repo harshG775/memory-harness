@@ -1,5 +1,6 @@
-import { RiBrainLine, RiCheckLine, RiShieldKeyholeLine } from "@remixicon/react";
+import { RiAppsLine, RiBrainLine, RiCheckLine, RiShieldKeyholeLine } from "@remixicon/react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { cn } from "cn";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { Button } from "#/components/ui/button";
@@ -8,6 +9,88 @@ import { authClient } from "#/lib/auth/auth-client";
 import { getSession } from "#/lib/server/auth.functions";
 
 const APP_NAME = env.VITE_APP_TITLE ?? "Memory Harness";
+
+/**
+ * Renders a self-hosted brand SVG (public/logos/*.svg, from simple-icons,
+ * CC0) recolored via CSS mask so it follows the light/dark theme instead of
+ * staying a flat black shape.
+ */
+function BrandMark({ src, className }: { src: string; className?: string }) {
+	return (
+		<span
+			aria-hidden
+			className={cn("inline-block bg-current", className)}
+			style={{
+				maskImage: `url(${src})`,
+				WebkitMaskImage: `url(${src})`,
+				maskRepeat: "no-repeat",
+				WebkitMaskRepeat: "no-repeat",
+				maskPosition: "center",
+				WebkitMaskPosition: "center",
+				maskSize: "contain",
+				WebkitMaskSize: "contain",
+			}}
+		/>
+	);
+}
+
+/**
+ * DCR clients rarely send a logo_uri/description (Claude's registration only
+ * ever sends `client_name`). This is a hand-maintained registry so we can
+ * still show a recognizable logo + description for apps we know, keyed by
+ * client_name since client_id changes on every re-registration.
+ */
+const KNOWN_CLIENTS: Record<string, { logo: string; accent: string; description: string }> = {
+	claude: {
+		logo: "/api/logos/claude",
+		accent: "bg-[#D97757]/15 text-[#D97757]",
+		description: "Anthropic's AI assistant",
+	},
+	"claude code": {
+		logo: "/api/logos/claude-code",
+		accent: "bg-[#D97757]/15 text-[#D97757]",
+		description: "Anthropic's CLI for agentic coding",
+	},
+	chatgpt: {
+		logo: "/api/logos/chatgpt",
+		accent: "bg-foreground/10 text-foreground",
+		description: "OpenAI's ChatGPT",
+	},
+	cursor: {
+		logo: "/api/logos/cursor",
+		accent: "bg-foreground/10 text-foreground",
+		description: "AI code editor",
+	},
+	windsurf: {
+		logo: "/api/logos/windsurf",
+		accent: "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400",
+		description: "AI code editor",
+	},
+	"visual studio code": {
+		logo: "/api/logos/vscode",
+		accent: "bg-sky-500/15 text-sky-600 dark:text-sky-400",
+		description: "VS Code with GitHub Copilot",
+	},
+	jetbrains: {
+		logo: "/api/logos/jetbrains",
+		accent: "bg-foreground/10 text-foreground",
+		description: "JetBrains AI Assistant",
+	},
+	perplexity: {
+		logo: "/api/logos/perplexity",
+		accent: "bg-teal-500/15 text-teal-600 dark:text-teal-400",
+		description: "Perplexity AI",
+	},
+	warp: {
+		logo: "/api/logos/warp",
+		accent: "bg-foreground/10 text-foreground",
+		description: "Warp terminal",
+	},
+};
+
+function getKnownClient(name: string) {
+	return KNOWN_CLIENTS[name.trim().toLowerCase()];
+}
 
 type ConsentSearch = {
 	client_id: string;
@@ -65,6 +148,7 @@ function RouteComponent() {
 	}, [client_id]);
 
 	const clientName = client?.client_name ?? client_id;
+	const known = getKnownClient(clientName);
 	const scopes = scope.split(" ").filter(Boolean);
 	const requestedClaims = claims ? (JSON.parse(claims) as { userinfo?: Record<string, unknown> }) : undefined;
 	const claimNames = requestedClaims?.userinfo ? Object.keys(requestedClaims.userinfo) : [];
@@ -110,13 +194,22 @@ function RouteComponent() {
 						</span>
 						<span className="h-px w-5 border-t border-dashed border-border" />
 					</div>
-					<Avatar size="lg" className="size-14">
+					<Avatar size="lg" className={cn("size-14", !client?.logo_uri && (known?.accent ?? "bg-muted"))}>
 						<AvatarImage src={client?.logo_uri ?? undefined} alt="" />
-						<AvatarFallback className="text-lg font-medium">{clientName.slice(0, 1).toUpperCase()}</AvatarFallback>
+						<AvatarFallback className="bg-transparent">
+							{known ? (
+								<BrandMark src={known.logo} className={cn("size-6", known.accent)} />
+							) : (
+								<RiAppsLine className="size-6 text-muted-foreground" />
+							)}
+						</AvatarFallback>
 					</Avatar>
 				</div>
 
-				<h1 className="text-center font-heading text-xl font-medium text-balance">Authorize {clientName}</h1>
+				<div className="flex flex-col items-center gap-0.5">
+					<h1 className="text-center font-heading text-xl font-medium text-balance">Authorize {clientName}</h1>
+					{known && <p className="text-sm text-muted-foreground">{known.description}</p>}
+				</div>
 			</div>
 
 			<div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-lg">
