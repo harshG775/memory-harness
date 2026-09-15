@@ -11,7 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
+import { Route as DotwellKnownSplatRouteImport } from './routes/[.]well-known/$'
+import { Route as PublicConsentRouteImport } from './routes/_public/consent'
 import { Route as PublicSignInRouteImport } from './routes/_public/sign-in'
+import { Route as McpIndexRouteImport } from './routes/mcp/index'
 import { Route as AuthedMemoriesIndexRouteImport } from './routes/_authed/memories/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthedMemoriesMemory_idIndexRouteImport } from './routes/_authed/memories/$memory_id/index'
@@ -26,9 +29,24 @@ const AuthedRouteRoute = AuthedRouteRouteImport.update({
   id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DotwellKnownSplatRoute = DotwellKnownSplatRouteImport.update({
+  id: '/.well-known/$',
+  path: '/.well-known/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicConsentRoute = PublicConsentRouteImport.update({
+  id: '/_public/consent',
+  path: '/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PublicSignInRoute = PublicSignInRouteImport.update({
   id: '/_public/sign-in',
   path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpIndexRoute = McpIndexRouteImport.update({
+  id: '/mcp/',
+  path: '/mcp/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedMemoriesIndexRoute = AuthedMemoriesIndexRouteImport.update({
@@ -55,7 +73,10 @@ const AuthedMemoriesNewIndexRoute = AuthedMemoriesNewIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/.well-known/$': typeof DotwellKnownSplatRoute
+  '/consent': typeof PublicConsentRoute
   '/sign-in': typeof PublicSignInRoute
+  '/mcp/': typeof McpIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/memories/': typeof AuthedMemoriesIndexRoute
   '/memories/$memory_id/': typeof AuthedMemoriesMemory_idIndexRoute
@@ -63,7 +84,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/.well-known/$': typeof DotwellKnownSplatRoute
+  '/consent': typeof PublicConsentRoute
   '/sign-in': typeof PublicSignInRoute
+  '/mcp': typeof McpIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/memories': typeof AuthedMemoriesIndexRoute
   '/memories/$memory_id': typeof AuthedMemoriesMemory_idIndexRoute
@@ -73,7 +97,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteRouteWithChildren
+  '/.well-known/$': typeof DotwellKnownSplatRoute
+  '/_public/consent': typeof PublicConsentRoute
   '/_public/sign-in': typeof PublicSignInRoute
+  '/mcp/': typeof McpIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_authed/memories/': typeof AuthedMemoriesIndexRoute
   '/_authed/memories/$memory_id/': typeof AuthedMemoriesMemory_idIndexRoute
@@ -83,7 +110,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/.well-known/$'
+    | '/consent'
     | '/sign-in'
+    | '/mcp/'
     | '/api/auth/$'
     | '/memories/'
     | '/memories/$memory_id/'
@@ -91,7 +121,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/.well-known/$'
+    | '/consent'
     | '/sign-in'
+    | '/mcp'
     | '/api/auth/$'
     | '/memories'
     | '/memories/$memory_id'
@@ -100,7 +133,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authed'
+    | '/.well-known/$'
+    | '/_public/consent'
     | '/_public/sign-in'
+    | '/mcp/'
     | '/api/auth/$'
     | '/_authed/memories/'
     | '/_authed/memories/$memory_id/'
@@ -110,7 +146,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
+  DotwellKnownSplatRoute: typeof DotwellKnownSplatRoute
+  PublicConsentRoute: typeof PublicConsentRoute
   PublicSignInRoute: typeof PublicSignInRoute
+  McpIndexRoute: typeof McpIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -130,11 +169,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/$': {
+      id: '/.well-known/$'
+      path: '/.well-known/$'
+      fullPath: '/.well-known/$'
+      preLoaderRoute: typeof DotwellKnownSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_public/consent': {
+      id: '/_public/consent'
+      path: '/consent'
+      fullPath: '/consent'
+      preLoaderRoute: typeof PublicConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_public/sign-in': {
       id: '/_public/sign-in'
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof PublicSignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp/': {
+      id: '/mcp/'
+      path: '/mcp'
+      fullPath: '/mcp/'
+      preLoaderRoute: typeof McpIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed/memories/': {
@@ -187,7 +247,10 @@ const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRouteRoute: AuthedRouteRouteWithChildren,
+  DotwellKnownSplatRoute: DotwellKnownSplatRoute,
+  PublicConsentRoute: PublicConsentRoute,
   PublicSignInRoute: PublicSignInRoute,
+  McpIndexRoute: McpIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

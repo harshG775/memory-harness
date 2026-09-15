@@ -1,10 +1,14 @@
-import { betterAuth } from "better-auth";
+import { mcp } from "@better-auth/mcp"; 
+import { betterAuth} from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { emailOTP } from "better-auth/plugins";
+import { emailOTP, jwt } from "better-auth/plugins"; 
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { env } from "#/env";
 import * as schema from "#/lib/db/schema/index";
 import { db } from "../db";
+
+
+export const MCP_RESOURCE = `${env.SERVER_URL}/mcp`
 
 export const auth = betterAuth({
 	baseURL: env.SERVER_URL,
@@ -17,6 +21,15 @@ export const auth = betterAuth({
 		requireEmailVerification: true,
 	},
 	plugins: [
+		jwt(),
+		mcp({
+			loginPage: "/sign-in",
+			consentPage: "/consent",
+			resource: MCP_RESOURCE,
+			allowDynamicClientRegistration: true,
+			allowUnauthenticatedClientRegistration: true,
+			allowPublicClientPrelogin: true,
+		}),
 		emailOTP({
 			overrideDefaultEmailVerification: true,
 			async sendVerificationOTP({ email, otp, type }) {

@@ -8,12 +8,16 @@ import { devVerifyEmail } from "#/lib/auth/dev-verify-email";
 import { getHasUsers } from "#/lib/auth/has-users";
 
 export const Route = createFileRoute("/_public/sign-in")({
+	validateSearch: (search: Record<string, unknown>): { redirectTo?: string } => ({
+		redirectTo: typeof search.redirectTo === "string" ? search.redirectTo : undefined,
+	}),
 	component: RouteComponent,
 	loader: async () => ({ hasUsers: await getHasUsers() }),
 });
 
 function RouteComponent() {
 	const { hasUsers } = Route.useLoaderData();
+	const { redirectTo } = Route.useSearch();
 	const navigate = useNavigate();
 
 	const [step, setStep] = useState<"credentials" | "otp">("credentials");
@@ -24,13 +28,22 @@ function RouteComponent() {
 	const [error, setError] = useState<string | null>(null);
 	const [isPending, setIsPending] = useState(false);
 
+	function redirectAfterAuth() {
+		// Only follow same-origin relative paths; never an absolute/external URL.
+		if (redirectTo?.startsWith("/") && !redirectTo.startsWith("//")) {
+			window.location.href = redirectTo;
+			return;
+		}
+		void navigate({ to: "/" });
+	}
+
 	async function completeSignIn() {
 		const { error: signInError } = await authClient.signIn.email({ email, password });
 		if (signInError) {
 			setError(signInError.message ?? "Something went wrong");
 			return;
 		}
-		void navigate({ to: "/" });
+		redirectAfterAuth();
 	}
 
 	async function handleCredentialsSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -45,7 +58,7 @@ function RouteComponent() {
 		if (!authError) {
 			setIsPending(false);
 			if (hasUsers) {
-				void navigate({ to: "/" });
+				redirectAfterAuth();
 			} else {
 				setStep("otp");
 			}
