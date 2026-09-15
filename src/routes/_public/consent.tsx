@@ -1,235 +1,217 @@
-import { useEffect, useState } from "react"
-import { createFileRoute } from "@tanstack/react-router"
-import { authClient } from "#/lib/auth/auth-client"
-import { fetchOAuthClientInfo } from "#/lib/auth/client-info"
-import type { OAuthClientInfo } from "#/lib/auth/client-info"
-import { AppIcon } from "#/components/app-icon"
-import { Spinner } from "#/components/ui/spinner"
+import { RiAppsLine, RiBrainLine, RiCheckLine, RiShieldKeyholeLine } from "@remixicon/react";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
+import { Button } from "#/components/ui/button";
+import { env } from "#/env";
+import { authClient } from "#/lib/auth/auth-client";
+import { getSession } from "#/lib/server/auth.functions";
 
-export const Route = createFileRoute("/_public/consent")({ component: Consent })
+const APP_NAME = env.VITE_APP_TITLE ?? "Memory Harness";
 
-type Status = "loading" | "ready" | "denying" | "allowing" | "redirecting"
+/**
+ * DCR clients rarely send a logo_uri/description (Claude's registration only
+ * ever sends `client_name`). This is a hand-maintained registry so we can
+ * still show a recognizable logo + description for apps we know, keyed by
+ * client_name since client_id changes on every re-registration.
+ *
+ * `logo` points at our own /api/logos/:slug proxy, which fetches each app's
+ * real favicon. These are full-color app icons (not transparent single-path
+ * marks), so they're rendered as a plain image and clipped to a circle by
+ * the Avatar - not recolored via CSS mask (a mask degenerates to a solid
+ * blob for anything with an opaque background, which most favicons have).
+ */
+const KNOWN_CLIENTS: Record<string, { logo: string; description: string }> = {
+	claude: { logo: "/api/logos/claude", description: "Anthropic's AI assistant" },
+	"claude code": { logo: "/api/logos/claude-code", description: "Anthropic's CLI for agentic coding" },
+	chatgpt: { logo: "/api/logos/chatgpt", description: "OpenAI's ChatGPT" },
+	cursor: { logo: "/api/logos/cursor", description: "AI code editor" },
+	windsurf: { logo: "/api/logos/windsurf", description: "AI code editor" },
+	"visual studio code": { logo: "/api/logos/vscode", description: "VS Code with GitHub Copilot" },
+	jetbrains: { logo: "/api/logos/jetbrains", description: "JetBrains AI Assistant" },
+	perplexity: { logo: "/api/logos/perplexity", description: "Perplexity AI" },
+	warp: { logo: "/api/logos/warp", description: "Warp terminal" },
+};
 
-type SessionUser = {
-    name: string
-    email: string
-    image?: string | null
+function getKnownClient(name: string) {
+	return KNOWN_CLIENTS[name.trim().toLowerCase()];
 }
 
-function UserRow({ user }: { user: SessionUser }) {
-    const initial = (user.name || user.email).trim().charAt(0).toUpperCase() || "?"
-    return (
-        <div className="mt-6 flex items-center gap-3 rounded-xl border border-gray-200 p-3 text-left">
-            {user.image ? (
-                <img src={user.image} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
-            ) : (
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-gray-600">
-                    {initial}
-                </div>
-            )}
-            <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-gray-900">{user.name}</p>
-                <p className="truncate text-xs text-gray-500">{user.email}</p>
-            </div>
-        </div>
-    )
+type ConsentSearch = {
+	client_id: string;
+	scope: string;
+	claims?: string;
+	redirect_uri?: string;
+};
+
+type PublicClient = {
+	client_name?: string | null;
+	logo_uri?: string | null;
+};
+
+const SCOPE_LABELS: Record<string, string> = {
+	openid: "Verify it's you",
+	profile: "View your name and profile info",
+	email: "View your email address",
+	offline_access: "Stay connected when you're not using the app",
+};
+
+function describeScope(scope: string): string {
+	return SCOPE_LABELS[scope] ?? `Access "${scope}"`;
 }
 
-function CheckIcon() {
-    return (
-        <svg viewBox="0 0 20 20" fill="currentColor" className="mt-0.5 h-4 w-4 shrink-0 text-blue-600">
-            <path
-                fillRule="evenodd"
-                d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                clipRule="evenodd"
-            />
-        </svg>
-    )
-}
+export const Route = createFileRoute("/_public/consent")({
+	validateSearch: (search: Record<string, unknown>): ConsentSearch => ({
+		client_id: typeof search.client_id === "string" ? search.client_id : "",
+		scope: typeof search.scope === "string" ? search.scope : "",
+		claims: typeof search.claims === "string" ? search.claims : undefined,
+		redirect_uri: typeof search.redirect_uri === "string" ? search.redirect_uri : undefined,
+	}),
+	loader: async ({ location }) => {
+		const session = await getSession();
+		if (!session?.user) {
+			throw redirect({ to: "/sign-in", search: { redirectTo: location.href } });
+		}
+		return { user: session.user };
+	},
+	component: RouteComponent,
+});
 
-function ConsentSkeleton() {
-    return (
-        <div className="w-full max-w-sm animate-pulse rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-            <div className="flex flex-col items-center gap-3 text-center">
-                <div className="h-14 w-14 rounded-full bg-gray-200" />
-                <div className="h-4 w-32 rounded bg-gray-200" />
-                <div className="h-3 w-48 rounded bg-gray-200" />
-            </div>
-            <div className="mt-6 flex items-center gap-3 rounded-xl border border-gray-200 p-3">
-                <div className="h-9 w-9 shrink-0 rounded-full bg-gray-200" />
-                <div className="min-w-0 flex-1 space-y-1.5">
-                    <div className="h-3 w-24 rounded bg-gray-200" />
-                    <div className="h-3 w-32 rounded bg-gray-200" />
-                </div>
-            </div>
-            <div className="mt-6 space-y-3 rounded-xl bg-gray-50 p-4">
-                <div className="h-3 w-28 rounded bg-gray-200" />
-                <div className="h-3 w-full rounded bg-gray-200" />
-                <div className="h-3 w-5/6 rounded bg-gray-200" />
-            </div>
-            <div className="mt-6 flex gap-3">
-                <div className="h-10 flex-1 rounded-lg bg-gray-200" />
-                <div className="h-10 flex-1 rounded-lg bg-gray-200" />
-            </div>
-        </div>
-    )
-}
+function RouteComponent() {
+	const { client_id, scope, claims, redirect_uri } = Route.useSearch();
+	const { user } = Route.useLoaderData();
 
-function Consent() {
-    const [status, setStatus] = useState<Status>("loading")
-    const [clientId, setClientId] = useState("")
-    const [scope, setScope] = useState("")
-    const [user, setUser] = useState<SessionUser | null>(null)
-    const [clientInfo, setClientInfo] = useState<OAuthClientInfo | null>(null)
-    const [error, setError] = useState<string | null>(null)
+	const [client, setClient] = useState<PublicClient | null>(null);
+	const [error, setError] = useState<string | null>(null);
+	const [isPending, setIsPending] = useState<"allow" | "deny" | null>(null);
 
-    useEffect(() => {
-        let cancelled = false
+	useEffect(() => {
+		if (!client_id) return;
+		authClient.oauth2.publicClient({ query: { client_id } }).then(({ data }) => {
+			setClient(data);
+		});
+	}, [client_id]);
 
-        async function load() {
-            const params = new URLSearchParams(window.location.search)
-            const cid = params.get("client_id") ?? ""
-            setClientId(cid || "Unknown application")
-            setScope(params.get("scope") ?? "")
+	const clientName = client?.client_name ?? client_id;
+	const known = getKnownClient(clientName);
+	const scopes = scope.split(" ").filter(Boolean);
+	const requestedClaims = claims ? (JSON.parse(claims) as { userinfo?: Record<string, unknown> }) : undefined;
+	const claimNames = requestedClaims?.userinfo ? Object.keys(requestedClaims.userinfo) : [];
 
-            const [{ data }, client] = await Promise.all([
-                authClient.getSession(),
-                cid ? fetchOAuthClientInfo(cid) : Promise.resolve(null),
-            ])
-            if (cancelled) return
+	let redirectHost: string | null = null;
+	try {
+		redirectHost = redirect_uri ? new URL(redirect_uri).host : null;
+	} catch {
+		redirectHost = null;
+	}
 
-            if (!data?.user) {
-                window.location.href = `/sign-in${window.location.search}`
-                return
-            }
+	async function respond(accept: boolean) {
+		setError(null);
+		setIsPending(accept ? "allow" : "deny");
 
-            setUser({ name: data.user.name, email: data.user.email, image: data.user.image })
-            if (client) setClientInfo(client)
-            setStatus("ready")
-        }
+		const { data, error: consentError } = await authClient.oauth2.consent({
+			accept,
+			claims: requestedClaims,
+		});
 
-        load()
-        return () => {
-            cancelled = true
-        }
-    }, [])
+		if (consentError || !data?.url) {
+			setIsPending(null);
+			setError(consentError?.message ?? "Something went wrong");
+			return;
+		}
 
-    async function respond(accept: boolean) {
-        setStatus(accept ? "allowing" : "denying")
-        setError(null)
+		window.location.href = data.url;
+	}
 
-        const { error: apiError } = await authClient.oauth2.consent({ accept })
+	return (
+		<div className="flex min-h-svh flex-col items-center justify-center gap-6 p-4">
+			<div className="flex flex-col items-center gap-5">
+				<div className="flex items-center gap-3">
+					<Avatar size="lg" className="size-14 bg-primary/10">
+						<AvatarFallback className="bg-transparent text-primary">
+							<RiBrainLine className="size-6" />
+						</AvatarFallback>
+					</Avatar>
+					<div className="flex items-center gap-1.5">
+						<span className="h-px w-5 border-t border-dashed border-border" />
+						<span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+							<RiCheckLine className="size-3" />
+						</span>
+						<span className="h-px w-5 border-t border-dashed border-border" />
+					</div>
+					<Avatar size="lg" className="size-14 bg-muted">
+						<AvatarImage src={client?.logo_uri ?? known?.logo ?? undefined} alt="" />
+						<AvatarFallback className="bg-transparent">
+							<RiAppsLine className="size-6 text-muted-foreground" />
+						</AvatarFallback>
+					</Avatar>
+				</div>
 
-        if (apiError) {
-            setStatus("ready")
-            setError(apiError.message ?? "Something went wrong")
-            return
-        }
+				<div className="flex flex-col items-center gap-0.5">
+					<h1 className="text-center font-heading text-xl font-medium text-balance">Authorize {clientName}</h1>
+					{known && <p className="text-sm text-muted-foreground">{known.description}</p>}
+				</div>
+			</div>
 
-        setStatus("redirecting")
-    }
+			<div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-lg">
+				<p className="mb-5 text-sm text-muted-foreground">
+					<span className="font-medium text-foreground">{clientName}</span> wants to access your {APP_NAME} account
+					{user && (
+						<>
+							{" "}
+							as <span className="font-medium text-foreground">{user.email}</span>
+						</>
+					)}
+					.
+				</p>
 
-    if (status === "loading") {
-        return (
-            <div className="flex min-h-screen items-center justify-center bg-gray-50 p-8">
-                <ConsentSkeleton />
-            </div>
-        )
-    }
+				<div className="mb-5 flex flex-col gap-3 rounded-xl border border-border bg-muted/40 p-4">
+					<p className="text-sm font-medium">This will allow {clientName} to:</p>
+					<ul className="flex flex-col gap-2.5">
+						{scopes.map((s) => (
+							<li key={s} className="flex items-start gap-2 text-sm text-muted-foreground">
+								<RiCheckLine className="mt-0.5 size-4 shrink-0 text-primary" />
+								<span>{describeScope(s)}</span>
+							</li>
+						))}
+						{claimNames.map((c) => (
+							<li key={c} className="flex items-start gap-2 text-sm text-muted-foreground">
+								<RiCheckLine className="mt-0.5 size-4 shrink-0 text-primary" />
+								<span>Share your {c.replace(/_/g, " ")}</span>
+							</li>
+						))}
+					</ul>
+				</div>
 
-    const scopes = scope.split(" ").filter(Boolean)
-    const isBusy = status === "denying" || status === "allowing" || status === "redirecting"
-    const displayName = clientInfo?.client_name || clientId
-    const websiteHost = (() => {
-        if (!clientInfo?.client_uri) return null
-        try {
-            return new URL(clientInfo.client_uri).hostname
-        } catch {
-            return null
-        }
-    })()
+				{error && <p className="mb-4 text-sm text-destructive">{error}</p>}
 
-    return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-50 p-8">
-            <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-                {status === "redirecting" ? (
-                    <div className="flex flex-col items-center gap-4 py-8 text-center">
-                        <Spinner className="h-8 w-8 text-blue-600" />
-                        <p className="text-sm text-gray-600">Taking you back to {displayName}...</p>
-                    </div>
-                ) : (
-                    <>
-                        <div className="flex flex-col items-center gap-3 text-center">
-                            <AppIcon name={displayName} logo={clientInfo?.logo_uri} />
-                            <div>
-                                <h1 className="text-lg font-semibold text-gray-900">Sign in to continue</h1>
-                                <p className="mt-1 text-sm text-gray-500">
-                                    <span
-                                        title={displayName}
-                                        className="inline-block max-w-55 truncate align-bottom font-medium text-gray-700"
-                                    >
-                                        {displayName}
-                                    </span>{" "}
-                                    wants to access your account
-                                </p>
-                                {websiteHost && (
-                                    <a
-                                        href={clientInfo?.client_uri}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="mt-0.5 inline-block text-xs text-blue-600 hover:underline"
-                                    >
-                                        {websiteHost}
-                                    </a>
-                                )}
-                            </div>
-                        </div>
+				<Button type="button" className="w-full" disabled={isPending !== null} onClick={() => respond(true)}>
+					{isPending === "allow" ? "Please wait..." : `Authorize ${clientName}`}
+				</Button>
 
-                        {user && <UserRow user={user} />}
+				{redirectHost && (
+					<p className="mt-3 text-center text-xs text-muted-foreground">
+						Authorizing will redirect to <span className="font-medium text-foreground">{redirectHost}</span>
+					</p>
+				)}
 
-                        {scopes.length > 0 && (
-                            <div className="mt-6 rounded-xl bg-gray-50 p-4">
-                                <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
-                                    This will allow it to
-                                </p>
-                                <ul className="mt-2 space-y-2">
-                                    {scopes.map((s) => (
-                                        <li key={s} className="flex items-start gap-2 text-sm text-gray-700">
-                                            <CheckIcon />
-                                            <span>{s}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
+				<Button
+					type="button"
+					variant="outline"
+					className="mt-2 w-full"
+					disabled={isPending !== null}
+					onClick={() => respond(false)}
+				>
+					{isPending === "deny" ? "Please wait..." : "Deny access"}
+				</Button>
+			</div>
 
-                        {error && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
-
-                        <p className="mt-6 text-xs text-gray-400">
-                            Make sure you trust {displayName} before continuing. You can revoke access at any time.
-                        </p>
-
-                        <div className="mt-6 flex gap-3">
-                            <button
-                                onClick={() => respond(false)}
-                                disabled={isBusy}
-                                className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
-                            >
-                                {status === "denying" && <Spinner />}
-                                Cancel
-                            </button>
-                            <button
-                                onClick={() => respond(true)}
-                                disabled={isBusy}
-                                className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
-                            >
-                                {status === "allowing" && <Spinner />}
-                                Allow
-                            </button>
-                        </div>
-                    </>
-                )}
-            </div>
-        </div>
-    )
+			<div className="flex w-full max-w-sm items-start gap-2 rounded-xl border border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
+				<RiShieldKeyholeLine className="mt-0.5 size-3.5 shrink-0" />
+				<span>
+					This app was not verified by {APP_NAME}. Only continue if you trust <strong>{clientName}</strong>.
+				</span>
+			</div>
+		</div>
+	);
 }

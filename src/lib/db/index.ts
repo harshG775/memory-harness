@@ -1,8 +1,7 @@
-import { drizzle } from "drizzle-orm/node-sqlite"
-import { DatabaseSync } from "node:sqlite"
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import { env } from "#/env";
+import { relations } from "./relations";
 
-import { env } from "#/env"
-import { relations } from "./relations"
-
-const sqlite = new DatabaseSync(env.DB_FILE_NAME)
-export const db = drizzle({ client: sqlite, relations })
+const sql = neon(env.DATABASE_URL);
+export const db = drizzle({ client: sql, relations: relations });

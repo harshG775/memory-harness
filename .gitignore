@@ -11,7 +11,4 @@ dist-ssr
 .vinxi
 __unconfig*
 todos.json
-mcp-todos.json
-*.db
-*.db-journal
-.mh
+memory-harness

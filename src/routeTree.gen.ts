@@ -12,11 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as DotwellKnownSplatRouteImport } from './routes/[.]well-known/$'
-import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
 import { Route as PublicConsentRouteImport } from './routes/_public/consent'
 import { Route as PublicSignInRouteImport } from './routes/_public/sign-in'
 import { Route as McpIndexRouteImport } from './routes/mcp/index'
+import { Route as AuthedMemoriesIndexRouteImport } from './routes/_authed/memories/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiLogosSlugRouteImport } from './routes/api/logos/$slug'
+import { Route as AuthedMemoriesMemory_idIndexRouteImport } from './routes/_authed/memories/$memory_id/index'
+import { Route as AuthedMemoriesNewIndexRouteImport } from './routes/_authed/memories/new/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -31,11 +34,6 @@ const DotwellKnownSplatRoute = DotwellKnownSplatRouteImport.update({
   id: '/.well-known/$',
   path: '/.well-known/$',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthedRouteRoute,
 } as any)
 const PublicConsentRoute = PublicConsentRouteImport.update({
   id: '/_public/consent',
@@ -52,70 +50,109 @@ const McpIndexRoute = McpIndexRouteImport.update({
   path: '/mcp/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedMemoriesIndexRoute = AuthedMemoriesIndexRouteImport.update({
+  id: '/memories/',
+  path: '/memories/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiLogosSlugRoute = ApiLogosSlugRouteImport.update({
+  id: '/api/logos/$slug',
+  path: '/api/logos/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedMemoriesMemory_idIndexRoute =
+  AuthedMemoriesMemory_idIndexRouteImport.update({
+    id: '/memories/$memory_id/',
+    path: '/memories/$memory_id/',
+    getParentRoute: () => AuthedRouteRoute,
+  } as any)
+const AuthedMemoriesNewIndexRoute = AuthedMemoriesNewIndexRouteImport.update({
+  id: '/memories/new/',
+  path: '/memories/new/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/.well-known/$': typeof DotwellKnownSplatRoute
-  '/dashboard': typeof AuthedDashboardRoute
   '/consent': typeof PublicConsentRoute
   '/sign-in': typeof PublicSignInRoute
   '/mcp/': typeof McpIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/logos/$slug': typeof ApiLogosSlugRoute
+  '/memories/': typeof AuthedMemoriesIndexRoute
+  '/memories/$memory_id/': typeof AuthedMemoriesMemory_idIndexRoute
+  '/memories/new/': typeof AuthedMemoriesNewIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/.well-known/$': typeof DotwellKnownSplatRoute
-  '/dashboard': typeof AuthedDashboardRoute
   '/consent': typeof PublicConsentRoute
   '/sign-in': typeof PublicSignInRoute
   '/mcp': typeof McpIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/logos/$slug': typeof ApiLogosSlugRoute
+  '/memories': typeof AuthedMemoriesIndexRoute
+  '/memories/$memory_id': typeof AuthedMemoriesMemory_idIndexRoute
+  '/memories/new': typeof AuthedMemoriesNewIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteRouteWithChildren
   '/.well-known/$': typeof DotwellKnownSplatRoute
-  '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_public/consent': typeof PublicConsentRoute
   '/_public/sign-in': typeof PublicSignInRoute
   '/mcp/': typeof McpIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/logos/$slug': typeof ApiLogosSlugRoute
+  '/_authed/memories/': typeof AuthedMemoriesIndexRoute
+  '/_authed/memories/$memory_id/': typeof AuthedMemoriesMemory_idIndexRoute
+  '/_authed/memories/new/': typeof AuthedMemoriesNewIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/.well-known/$'
-    | '/dashboard'
     | '/consent'
     | '/sign-in'
     | '/mcp/'
     | '/api/auth/$'
+    | '/api/logos/$slug'
+    | '/memories/'
+    | '/memories/$memory_id/'
+    | '/memories/new/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/.well-known/$'
-    | '/dashboard'
     | '/consent'
     | '/sign-in'
     | '/mcp'
     | '/api/auth/$'
+    | '/api/logos/$slug'
+    | '/memories'
+    | '/memories/$memory_id'
+    | '/memories/new'
   id:
     | '__root__'
     | '/'
     | '/_authed'
     | '/.well-known/$'
-    | '/_authed/dashboard'
     | '/_public/consent'
     | '/_public/sign-in'
     | '/mcp/'
     | '/api/auth/$'
+    | '/api/logos/$slug'
+    | '/_authed/memories/'
+    | '/_authed/memories/$memory_id/'
+    | '/_authed/memories/new/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -126,6 +163,7 @@ export interface RootRouteChildren {
   PublicSignInRoute: typeof PublicSignInRoute
   McpIndexRoute: typeof McpIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiLogosSlugRoute: typeof ApiLogosSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -151,13 +189,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DotwellKnownSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authed/dashboard': {
-      id: '/_authed/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthedDashboardRouteImport
-      parentRoute: typeof AuthedRouteRoute
-    }
     '/_public/consent': {
       id: '/_public/consent'
       path: '/consent'
@@ -179,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof McpIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/memories/': {
+      id: '/_authed/memories/'
+      path: '/memories'
+      fullPath: '/memories/'
+      preLoaderRoute: typeof AuthedMemoriesIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -186,15 +224,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/logos/$slug': {
+      id: '/api/logos/$slug'
+      path: '/api/logos/$slug'
+      fullPath: '/api/logos/$slug'
+      preLoaderRoute: typeof ApiLogosSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authed/memories/$memory_id/': {
+      id: '/_authed/memories/$memory_id/'
+      path: '/memories/$memory_id'
+      fullPath: '/memories/$memory_id/'
+      preLoaderRoute: typeof AuthedMemoriesMemory_idIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
+    '/_authed/memories/new/': {
+      id: '/_authed/memories/new/'
+      path: '/memories/new'
+      fullPath: '/memories/new/'
+      preLoaderRoute: typeof AuthedMemoriesNewIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
   }
 }
 
 interface AuthedRouteRouteChildren {
-  AuthedDashboardRoute: typeof AuthedDashboardRoute
+  AuthedMemoriesIndexRoute: typeof AuthedMemoriesIndexRoute
+  AuthedMemoriesMemory_idIndexRoute: typeof AuthedMemoriesMemory_idIndexRoute
+  AuthedMemoriesNewIndexRoute: typeof AuthedMemoriesNewIndexRoute
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
-  AuthedDashboardRoute: AuthedDashboardRoute,
+  AuthedMemoriesIndexRoute: AuthedMemoriesIndexRoute,
+  AuthedMemoriesMemory_idIndexRoute: AuthedMemoriesMemory_idIndexRoute,
+  AuthedMemoriesNewIndexRoute: AuthedMemoriesNewIndexRoute,
 }
 
 const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
@@ -209,6 +272,7 @@ const rootRouteChildren: RootRouteChildren = {
   PublicSignInRoute: PublicSignInRoute,
   McpIndexRoute: McpIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiLogosSlugRoute: ApiLogosSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

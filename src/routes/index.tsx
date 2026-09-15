@@ -1,42 +1,59 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { authClient } from "#/lib/auth/auth-client"
+import { RiLogoutBoxRLine, RiUserLine } from "@remixicon/react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Button } from "#/components/ui/button";
+import { authClient } from "#/lib/auth/auth-client";
+import { getSession } from "#/lib/server/auth.functions";
 
-export const Route = createFileRoute("/")({ component: Home })
+export const Route = createFileRoute("/")({
+	component: RouteComponent,
+	loader: async () => {
+		const session = await getSession();
+		return { user: session?.user ?? null };
+	},
+	pendingComponent: PendingComponent,
+});
 
-function Home() {
-    const navigate = useNavigate()
-    const { data: session, isPending } = authClient.useSession()
+function PendingComponent() {
+	return (
+		<div className="flex items-center justify-between p-4">
+			<div className="flex items-center gap-3">
+				<div className="size-5 animate-pulse rounded-full bg-muted" />
+				<div className="h-4 w-20 animate-pulse rounded bg-muted" />
+				<div className="h-8 w-24 animate-pulse rounded-4xl bg-muted" />
+				<div className="size-9 animate-pulse rounded-4xl bg-muted" />
+			</div>
+		</div>
+	);
+}
 
-    async function handleLogout() {
-        await authClient.signOut()
-        navigate({ to: "/sign-in" })
-    }
+function RouteComponent() {
+	const { user } = Route.useLoaderData();
+	const navigate = useNavigate();
 
-    return (
-        <div className="p-8">
-            <h1 className="text-4xl font-bold">Welcome to TanStack Start</h1>
-            <p className="mt-4 text-lg">
-                Edit <code>src/routes/index.tsx</code> to get started.
-            </p>
+	async function handleLogout() {
+		await authClient.signOut();
+		void navigate({ to: "/sign-in" });
+	}
 
-            <div className="mt-8">
-                {isPending ? (
-                    <p>Loading...</p>
-                ) : session ? (
-                    <div className="flex items-center gap-4">
-                        <p>
-                            Signed in as <strong>{session.user.name}</strong> ({session.user.email})
-                        </p>
-                        <button onClick={handleLogout} className="rounded bg-black px-3 py-2 text-white">
-                            Log out
-                        </button>
-                    </div>
-                ) : (
-                    <p>
-                        Not signed in.
-                    </p>
-                )}
-            </div>
-        </div>
-    )
+	return (
+		<div className="flex items-center justify-between p-4">
+			{user ? (
+				<div className="flex items-center gap-3">
+					<RiUserLine className="size-5 text-muted-foreground" />
+					<span className="text-sm font-medium">{user.name}</span>
+					<Button variant="outline" size="sm" nativeButton={false} render={<Link to="/memories" />}>
+						Memories
+					</Button>
+					<Button variant="ghost" size="icon-sm" onClick={handleLogout}>
+						<RiLogoutBoxRLine />
+						<span className="sr-only">Log out</span>
+					</Button>
+				</div>
+			) : (
+				<Button nativeButton={false} render={<Link to="/sign-in" />}>
+					Log in
+				</Button>
+			)}
+		</div>
+	);
 }

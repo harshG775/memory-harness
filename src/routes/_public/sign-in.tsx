@@ -1,202 +1,216 @@
-import { useEffect, useState } from "react"
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { createServerFn } from "@tanstack/react-start"
-import { z } from "zod"
-import { authClient } from "#/lib/auth/auth-client"
-import { fetchOAuthClientInfo  } from "#/lib/auth/client-info"
-import type {OAuthClientInfo} from "#/lib/auth/client-info";
-import { AppIcon } from "#/components/app-icon"
-import { Spinner } from "#/components/ui/spinner"
-import { db } from "#/lib/db"
-import { user } from "#/lib/db/schema"
-
-const checkHasUsers = createServerFn({ method: "GET" }).handler(async () => {
-    const existing = await db.select({ id: user.id }).from(user).limit(1)
-    return { hasUsers: existing.length > 0 }
-})
-
-const signInSearchSchema = z.object({
-    client_id: z.string().optional(),
-})
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { Button } from "#/components/ui/button";
+import { Input } from "#/components/ui/input";
+import { Label } from "#/components/ui/label";
+import { authClient } from "#/lib/auth/auth-client";
+import { devVerifyEmail } from "#/lib/auth/dev-verify-email";
+import { getHasUsers } from "#/lib/auth/has-users";
 
 export const Route = createFileRoute("/_public/sign-in")({
-    validateSearch: signInSearchSchema,
-    loader: () => checkHasUsers(),
-    component: Login,
-})
+	validateSearch: (search: Record<string, unknown>): { redirectTo?: string } => ({
+		redirectTo: typeof search.redirectTo === "string" ? search.redirectTo : undefined,
+	}),
+	component: RouteComponent,
+	loader: async () => ({ hasUsers: await getHasUsers() }),
+});
 
-function SignInSkeleton() {
-    return (
-        <div className="w-full max-w-sm animate-pulse rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-            <div className="mb-6 flex flex-col items-center gap-3">
-                <div className="h-14 w-14 rounded-full bg-gray-200" />
-                <div className="h-4 w-32 rounded bg-gray-200" />
-                <div className="h-3 w-40 rounded bg-gray-200" />
-            </div>
-            <div className="space-y-4">
-                <div className="space-y-1">
-                    <div className="h-3 w-12 rounded bg-gray-200" />
-                    <div className="h-10 w-full rounded-lg bg-gray-200" />
-                </div>
-                <div className="space-y-1">
-                    <div className="h-3 w-16 rounded bg-gray-200" />
-                    <div className="h-10 w-full rounded-lg bg-gray-200" />
-                </div>
-                <div className="h-10 w-full rounded-lg bg-gray-200" />
-            </div>
-        </div>
-    )
-}
+function RouteComponent() {
+	const { hasUsers } = Route.useLoaderData();
+	const { redirectTo } = Route.useSearch();
+	const navigate = useNavigate();
 
-function Login() {
-    const { hasUsers } = Route.useLoaderData()
-    const { client_id } = Route.useSearch()
-    const navigate = useNavigate()
-    const [name, setName] = useState("")
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [error, setError] = useState<string | null>(null)
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [clientInfo, setClientInfo] = useState<OAuthClientInfo | null>(null)
-    const [appPending, setAppPending] = useState(Boolean(client_id))
+	const [step, setStep] = useState<"credentials" | "otp">("credentials");
+	const [name, setName] = useState("");
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [otp, setOtp] = useState("");
+	const [error, setError] = useState<string | null>(null);
+	const [isPending, setIsPending] = useState(false);
 
-    useEffect(() => {
-        if (!client_id) return
-        let cancelled = false
+	function redirectAfterAuth() {
+		// Only follow same-origin relative paths; never an absolute/external URL.
+		if (redirectTo?.startsWith("/") && !redirectTo.startsWith("//")) {
+			window.location.href = redirectTo;
+			return;
+		}
+		void navigate({ to: "/" });
+	}
 
-        fetchOAuthClientInfo(client_id).then((info) => {
-            if (cancelled) return
-            setClientInfo(info)
-            setAppPending(false)
-        })
+	async function completeSignIn() {
+		const { error: signInError } = await authClient.signIn.email({ email, password });
+		if (signInError) {
+			setError(signInError.message ?? "Something went wrong");
+			return;
+		}
+		redirectAfterAuth();
+	}
 
-        return () => {
-            cancelled = true
-        }
-    }, [client_id])
+	async function handleCredentialsSubmit(event: React.FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		setError(null);
+		setIsPending(true);
 
-    async function handleSubmit(e: React.FormEvent) {
-        e.preventDefault()
-        setError(null)
-        setIsSubmitting(true)
+		const { error: authError } = hasUsers
+			? await authClient.signIn.email({ email, password })
+			: await authClient.signUp.email({ name, email, password });
 
-        const { data, error: authError } = hasUsers
-            ? await authClient.signIn.email({ email, password })
-            : await authClient.signUp.email({ name, email, password })
+		if (!authError) {
+			setIsPending(false);
+			if (hasUsers) {
+				redirectAfterAuth();
+			} else {
+				setStep("otp");
+			}
+			return;
+		}
 
-        setIsSubmitting(false)
+		if (authError.code === "EMAIL_NOT_VERIFIED") {
+			await authClient.emailOtp.sendVerificationOtp({ email, type: "email-verification" });
+			setIsPending(false);
+			setStep("otp");
+			return;
+		}
 
-        if (authError) {
-            setError(authError.message ?? "Something went wrong")
-            return
-        }
+		setIsPending(false);
+		setError(authError.message ?? "Something went wrong");
+	}
 
-        if ("redirect" in data && data.redirect) return
+	async function handleOtpSubmit(event: React.FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		setError(null);
+		setIsPending(true);
 
-        if (client_id) {
-            window.location.href = `/api/auth/oauth2/authorize${window.location.search}`
-            return
-        }
+		const { error: verifyError } = await authClient.emailOtp.verifyEmail({ email, otp });
+		if (verifyError) {
+			setIsPending(false);
+			setError(verifyError.message ?? "Invalid code");
+			return;
+		}
 
-        navigate({ to: "/" })
-    }
+		await completeSignIn();
+		setIsPending(false);
+	}
 
-    const displayName = clientInfo?.client_name
+	// TEMPORARY dev-only bypass: skips real OTP entry since no email provider
+	// is wired up yet. Remove once one is.
+	async function handleDevSkipVerification() {
+		setError(null);
+		setIsPending(true);
+		await devVerifyEmail({ data: { email } });
+		await completeSignIn();
+		setIsPending(false);
+	}
 
-    if (appPending) {
-        return (
-            <div className="flex min-h-screen items-center justify-center bg-gray-50 p-8">
-                <SignInSkeleton />
-            </div>
-        )
-    }
+	if (step === "otp") {
+		return (
+			<div className="flex min-h-svh items-center justify-center p-4">
+				<div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
+					<div className="mb-6 flex flex-col gap-1">
+						<h1 className="font-heading text-xl font-medium">Verify your email</h1>
+						<p className="text-sm text-muted-foreground">
+							We sent a code to {email}. No email provider is configured yet, so check the server console for it.
+						</p>
+					</div>
 
-    return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-50 p-8">
-            <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-                <div className="mb-6 flex flex-col items-center gap-3 text-center">
-                    {displayName && <AppIcon name={displayName} logo={clientInfo.logo_uri} />}
-                    <div>
-                        <h1 className="text-lg font-semibold text-gray-900">
-                            {hasUsers ? "Sign in to continue" : "Create your account"}
-                        </h1>
-                        {displayName ? (
-                            <p className="mt-1 text-sm text-gray-500">
-                                <span className="font-medium text-gray-700">{displayName}</span> wants you to sign in
-                            </p>
-                        ) : (
-                            !hasUsers && (
-                                <p className="mt-1 text-sm text-gray-500">
-                                    No account exists yet. Create the owner account to get started.
-                                </p>
-                            )
-                        )}
-                    </div>
-                </div>
+					<form className="flex flex-col gap-4" onSubmit={handleOtpSubmit}>
+						<div className="flex flex-col gap-1.5">
+							<Label htmlFor="otp">Verification code</Label>
+							<Input
+								id="otp"
+								name="otp"
+								inputMode="numeric"
+								autoComplete="one-time-code"
+								required
+								value={otp}
+								onChange={(event) => setOtp(event.target.value)}
+							/>
+						</div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {!hasUsers && (
-                        <div className="space-y-1">
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                                Name
-                            </label>
-                            <input
-                                id="name"
-                                type="text"
-                                required
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                            />
-                        </div>
-                    )}
+						{error && <p className="text-sm text-destructive">{error}</p>}
 
-                    <div className="space-y-1">
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                            Email
-                        </label>
-                        <input
-                            id="email"
-                            type="email"
-                            required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                        />
-                    </div>
+						<Button type="submit" className="w-full" disabled={isPending}>
+							{isPending ? "Please wait..." : "Verify"}
+						</Button>
 
-                    <div className="space-y-1">
-                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                            Password
-                        </label>
-                        <input
-                            id="password"
-                            type="password"
-                            required
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                        />
-                    </div>
+						{import.meta.env.DEV && (
+							<Button
+								type="button"
+								variant="outline"
+								className="w-full"
+								disabled={isPending}
+								onClick={handleDevSkipVerification}
+							>
+								Skip verification (dev only)
+							</Button>
+						)}
+					</form>
+				</div>
+			</div>
+		);
+	}
 
-                    {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
+	return (
+		<div className="flex min-h-svh items-center justify-center p-4">
+			<div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xs">
+				<div className="mb-6 flex flex-col gap-1">
+					<h1 className="font-heading text-xl font-medium">{hasUsers ? "Sign in" : "Create your account"}</h1>
+					<p className="text-sm text-muted-foreground">
+						{hasUsers
+							? "Welcome back. Enter your credentials to continue."
+							: "No account exists yet. Create the first account to get started."}
+					</p>
+				</div>
 
-                    <button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50"
-                    >
-                        {isSubmitting && <Spinner />}
-                        {isSubmitting
-                            ? hasUsers
-                                ? "Signing in..."
-                                : "Creating account..."
-                            : hasUsers
-                              ? "Sign in"
-                              : "Create account"}
-                    </button>
-                </form>
-            </div>
-        </div>
-    )
+				<form className="flex flex-col gap-4" onSubmit={handleCredentialsSubmit}>
+					{!hasUsers && (
+						<div className="flex flex-col gap-1.5">
+							<Label htmlFor="name">Name</Label>
+							<Input
+								id="name"
+								name="name"
+								autoComplete="name"
+								required
+								value={name}
+								onChange={(event) => setName(event.target.value)}
+							/>
+						</div>
+					)}
+
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor="email">Email</Label>
+						<Input
+							id="email"
+							name="email"
+							type="email"
+							autoComplete="email"
+							required
+							value={email}
+							onChange={(event) => setEmail(event.target.value)}
+						/>
+					</div>
+
+					<div className="flex flex-col gap-1.5">
+						<Label htmlFor="password">Password</Label>
+						<Input
+							id="password"
+							name="password"
+							type="password"
+							autoComplete={hasUsers ? "current-password" : "new-password"}
+							required
+							minLength={8}
+							value={password}
+							onChange={(event) => setPassword(event.target.value)}
+						/>
+					</div>
+
+					{error && <p className="text-sm text-destructive">{error}</p>}
+
+					<Button type="submit" className="mt-2 w-full" disabled={isPending}>
+						{isPending ? "Please wait..." : hasUsers ? "Sign in" : "Sign up"}
+					</Button>
+				</form>
+			</div>
+		</div>
+	);
 }
