@@ -1,10 +1,13 @@
-import { RiCheckLine, RiShieldKeyholeLine } from "@remixicon/react";
+import { RiBrainLine, RiCheckLine, RiShieldKeyholeLine } from "@remixicon/react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { Button } from "#/components/ui/button";
+import { env } from "#/env";
 import { authClient } from "#/lib/auth/auth-client";
 import { getSession } from "#/lib/server/auth.functions";
+
+const APP_NAME = env.VITE_APP_TITLE ?? "Memory Harness";
 
 type ConsentSearch = {
 	client_id: string;
@@ -61,6 +64,7 @@ function RouteComponent() {
 		});
 	}, [client_id]);
 
+	const clientName = client?.client_name ?? client_id;
 	const scopes = scope.split(" ").filter(Boolean);
 	const requestedClaims = claims ? (JSON.parse(claims) as { userinfo?: Record<string, unknown> }) : undefined;
 	const claimNames = requestedClaims?.userinfo ? Object.keys(requestedClaims.userinfo) : [];
@@ -91,31 +95,44 @@ function RouteComponent() {
 	}
 
 	return (
-		<div className="flex min-h-svh items-center justify-center p-4">
-			<div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-lg">
-				<div className="mb-6 flex flex-col items-center gap-3 text-center">
-					<Avatar size="lg" className="size-14">
-						<AvatarImage src={client?.logo_uri ?? undefined} alt="" />
-						<AvatarFallback className="text-lg font-medium">
-							{(client?.client_name ?? client_id).slice(0, 1).toUpperCase()}
+		<div className="flex min-h-svh flex-col items-center justify-center gap-6 p-4">
+			<div className="flex flex-col items-center gap-5">
+				<div className="flex items-center gap-3">
+					<Avatar size="lg" className="size-14 bg-primary/10">
+						<AvatarFallback className="bg-transparent text-primary">
+							<RiBrainLine className="size-6" />
 						</AvatarFallback>
 					</Avatar>
-					<div className="flex flex-col gap-1">
-						<h1 className="font-heading text-xl font-medium">{client?.client_name ?? client_id}</h1>
-						<p className="text-sm text-muted-foreground">wants to access your account</p>
+					<div className="flex items-center gap-1.5">
+						<span className="h-px w-5 border-t border-dashed border-border" />
+						<span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+							<RiCheckLine className="size-3" />
+						</span>
+						<span className="h-px w-5 border-t border-dashed border-border" />
 					</div>
+					<Avatar size="lg" className="size-14">
+						<AvatarImage src={client?.logo_uri ?? undefined} alt="" />
+						<AvatarFallback className="text-lg font-medium">{clientName.slice(0, 1).toUpperCase()}</AvatarFallback>
+					</Avatar>
 				</div>
 
-				{user && (
-					<div className="mb-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-						<span>
-							Signed in as <span className="font-medium text-foreground">{user.email}</span>
-						</span>
-					</div>
-				)}
+				<h1 className="text-center font-heading text-xl font-medium text-balance">Authorize {clientName}</h1>
+			</div>
 
-				<div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-muted/40 p-4">
-					<p className="text-sm font-medium">This will allow {client?.client_name ?? "this app"} to:</p>
+			<div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-lg">
+				<p className="mb-5 text-sm text-muted-foreground">
+					<span className="font-medium text-foreground">{clientName}</span> wants to access your {APP_NAME} account
+					{user && (
+						<>
+							{" "}
+							as <span className="font-medium text-foreground">{user.email}</span>
+						</>
+					)}
+					.
+				</p>
+
+				<div className="mb-5 flex flex-col gap-3 rounded-xl border border-border bg-muted/40 p-4">
+					<p className="text-sm font-medium">This will allow {clientName} to:</p>
 					<ul className="flex flex-col gap-2.5">
 						{scopes.map((s) => (
 							<li key={s} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -132,32 +149,34 @@ function RouteComponent() {
 					</ul>
 				</div>
 
-				{redirectHost && (
-					<div className="mb-6 flex items-start gap-2 text-xs text-muted-foreground">
-						<RiShieldKeyholeLine className="mt-0.5 size-3.5 shrink-0" />
-						<span>
-							You'll be redirected to <span className="font-medium text-foreground">{redirectHost}</span> after you
-							continue.
-						</span>
-					</div>
-				)}
-
 				{error && <p className="mb-4 text-sm text-destructive">{error}</p>}
 
-				<div className="flex gap-2">
-					<Button
-						type="button"
-						variant="outline"
-						className="flex-1"
-						disabled={isPending !== null}
-						onClick={() => respond(false)}
-					>
-						{isPending === "deny" ? "Please wait..." : "Deny"}
-					</Button>
-					<Button type="button" className="flex-1" disabled={isPending !== null} onClick={() => respond(true)}>
-						{isPending === "allow" ? "Please wait..." : "Allow"}
-					</Button>
-				</div>
+				<Button type="button" className="w-full" disabled={isPending !== null} onClick={() => respond(true)}>
+					{isPending === "allow" ? "Please wait..." : `Authorize ${clientName}`}
+				</Button>
+
+				{redirectHost && (
+					<p className="mt-3 text-center text-xs text-muted-foreground">
+						Authorizing will redirect to <span className="font-medium text-foreground">{redirectHost}</span>
+					</p>
+				)}
+
+				<Button
+					type="button"
+					variant="ghost"
+					className="mt-2 w-full text-muted-foreground"
+					disabled={isPending !== null}
+					onClick={() => respond(false)}
+				>
+					{isPending === "deny" ? "Please wait..." : "Deny access"}
+				</Button>
+			</div>
+
+			<div className="flex w-full max-w-sm items-start gap-2 rounded-xl border border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
+				<RiShieldKeyholeLine className="mt-0.5 size-3.5 shrink-0" />
+				<span>
+					This app was not verified by {APP_NAME}. Only continue if you trust <strong>{clientName}</strong>.
+				</span>
 			</div>
 		</div>
 	);
