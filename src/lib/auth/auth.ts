@@ -11,7 +11,7 @@ import { db } from "../db";
 export const MCP_RESOURCE = `${env.SERVER_URL}/mcp`
 
 
-function createAuth() {
+export function createAuth() {
 	return betterAuth({
 		baseURL: env.SERVER_URL,
 		database: drizzleAdapter(db, {
@@ -41,13 +41,4 @@ function createAuth() {
 			tanstackStartCookies(),
 		],
 	});
-}
-
-let _auth: ReturnType<typeof createAuth> | undefined;
-
-export function getAuth() {
-	if (!_auth) {
-		_auth = createAuth();
-	}
-	return _auth;
 }
