@@ -62,7 +62,7 @@ function createMCPServer(userId: string): McpServer {
 				categoryId: z.enum(categoryIdEnum.enumValues).describe("Must match the path's leading segment"),
 				description: z.string().describe("Short summary of this entry"),
 				if_version: z
-					.union([z.number().int().positive(), z.literal("new")])
+					.union([z.coerce.number().int().positive(), z.literal("new")])
 					.describe('The version you expect to overwrite, or "new" to create'),
 			},
 		},
@@ -81,7 +81,7 @@ function createMCPServer(userId: string): McpServer {
 			inputSchema: {
 				path: z.string().describe("Path of the memory entry"),
 				content: z.string().describe("Text to append"),
-				if_version: z.number().int().positive().describe("The version you expect to append to"),
+				if_version: z.coerce.number().int().positive().describe("The version you expect to append to"),
 			},
 		},
 		async ({ path, content, if_version }) =>
@@ -100,7 +100,7 @@ function createMCPServer(userId: string): McpServer {
 				path: z.string().describe("Path of the memory entry"),
 				old_str: z.string().min(1).describe("Exact text to find; must occur exactly once"),
 				new_str: z.string().describe("Replacement text"),
-				if_version: z.number().int().positive().describe("The version you expect to modify"),
+				if_version: z.coerce.number().int().positive().describe("The version you expect to modify"),
 			},
 		},
 		async ({ path, old_str, new_str, if_version }) =>
@@ -134,7 +134,7 @@ function createMCPServer(userId: string): McpServer {
 				"Soft-delete a memory entry. Prefer memory_write to retire content by overwriting it with a pointer instead, unless the entry is simply wrong.",
 			inputSchema: {
 				path: z.string().describe("Path of the memory entry"),
-				if_version: z.number().int().positive().describe("The version you expect to delete"),
+				if_version: z.coerce.number().int().positive().describe("The version you expect to delete"),
 			},
 		},
 		async ({ path, if_version }) =>
