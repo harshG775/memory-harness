@@ -1,7 +1,17 @@
 {
-    "$schema": "node_modules/wrangler/config-schema.json",
-    "name": "memory-harness",
-    "compatibility_date": "2026-09-15",
-    "compatibility_flags": ["nodejs_compat"],
-    "main": "@tanstack/react-start/server-entry",
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "memory-harness",
+	"compatibility_date": "2026-09-15",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"main": "@tanstack/react-start/server-entry",
+	"vars": {
+		"SERVER_URL": "https://memory-harness.hgaur491.workers.dev"
+	},
+	"observability": {
+		"logs": {
+			"enabled": true
+		}
+	},
 }
