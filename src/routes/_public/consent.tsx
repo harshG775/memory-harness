@@ -5,37 +5,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { Button } from "#/components/ui/button";
 import { env } from "#/env";
 import { authClient } from "#/lib/auth/auth-client";
+import { describeScope, getKnownClient } from "#/lib/oauth/known-clients";
 import { getSession } from "#/lib/server/auth.functions";
 
 const APP_NAME = env.VITE_APP_TITLE ?? "Memory Harness";
-
-/**
- * DCR clients rarely send a logo_uri/description (Claude's registration only
- * ever sends `client_name`). This is a hand-maintained registry so we can
- * still show a recognizable logo + description for apps we know, keyed by
- * client_name since client_id changes on every re-registration.
- *
- * `logo` points at our own /api/logos/:slug proxy, which fetches each app's
- * real favicon. These are full-color app icons (not transparent single-path
- * marks), so they're rendered as a plain image and clipped to a circle by
- * the Avatar - not recolored via CSS mask (a mask degenerates to a solid
- * blob for anything with an opaque background, which most favicons have).
- */
-const KNOWN_CLIENTS: Record<string, { logo: string; description: string }> = {
-	claude: { logo: "/api/logos/claude", description: "Anthropic's AI assistant" },
-	"claude code": { logo: "/api/logos/claude-code", description: "Anthropic's CLI for agentic coding" },
-	chatgpt: { logo: "/api/logos/chatgpt", description: "OpenAI's ChatGPT" },
-	cursor: { logo: "/api/logos/cursor", description: "AI code editor" },
-	windsurf: { logo: "/api/logos/windsurf", description: "AI code editor" },
-	"visual studio code": { logo: "/api/logos/vscode", description: "VS Code with GitHub Copilot" },
-	jetbrains: { logo: "/api/logos/jetbrains", description: "JetBrains AI Assistant" },
-	perplexity: { logo: "/api/logos/perplexity", description: "Perplexity AI" },
-	warp: { logo: "/api/logos/warp", description: "Warp terminal" },
-};
-
-function getKnownClient(name: string) {
-	return KNOWN_CLIENTS[name.trim().toLowerCase()];
-}
 
 type ConsentSearch = {
 	client_id: string;
@@ -48,17 +21,6 @@ type PublicClient = {
 	client_name?: string | null;
 	logo_uri?: string | null;
 };
-
-const SCOPE_LABELS: Record<string, string> = {
-	openid: "Verify it's you",
-	profile: "View your name and profile info",
-	email: "View your email address",
-	offline_access: "Stay connected when you're not using the app",
-};
-
-function describeScope(scope: string): string {
-	return SCOPE_LABELS[scope] ?? `Access "${scope}"`;
-}
 
 export const Route = createFileRoute("/_public/consent")({
 	validateSearch: (search: Record<string, unknown>): ConsentSearch => ({
@@ -76,6 +38,12 @@ export const Route = createFileRoute("/_public/consent")({
 	},
 	component: RouteComponent,
 });
+
+function getInitials(name: string): string {
+	const parts = name.trim().split(/\s+/);
+	const initials = parts.length > 1 ? `${parts[0][0]}${parts[parts.length - 1][0]}` : parts[0]?.slice(0, 2);
+	return (initials ?? "").toUpperCase();
+}
 
 function RouteComponent() {
 	const { client_id, scope, claims, redirect_uri } = Route.useSearch();
@@ -97,6 +65,7 @@ function RouteComponent() {
 	const scopes = scope.split(" ").filter(Boolean);
 	const requestedClaims = claims ? (JSON.parse(claims) as { userinfo?: Record<string, unknown> }) : undefined;
 	const claimNames = requestedClaims?.userinfo ? Object.keys(requestedClaims.userinfo) : [];
+	const permissionCount = scopes.length + claimNames.length;
 
 	let redirectHost: string | null = null;
 	try {
@@ -127,9 +96,10 @@ function RouteComponent() {
 		<div className="flex min-h-svh flex-col items-center justify-center gap-6 p-4">
 			<div className="flex flex-col items-center gap-5">
 				<div className="flex items-center gap-3">
-					<Avatar size="lg" className="size-14 bg-primary/10">
-						<AvatarFallback className="bg-transparent text-primary">
-							<RiBrainLine className="size-6" />
+					<Avatar size="lg" className="size-14 bg-muted">
+						<AvatarImage src={client?.logo_uri ?? known?.logo ?? undefined} alt="" />
+						<AvatarFallback className="bg-transparent">
+							<RiAppsLine className="size-6 text-muted-foreground" />
 						</AvatarFallback>
 					</Avatar>
 					<div className="flex items-center gap-1.5">
@@ -139,34 +109,30 @@ function RouteComponent() {
 						</span>
 						<span className="h-px w-5 border-t border-dashed border-border" />
 					</div>
-					<Avatar size="lg" className="size-14 bg-muted">
-						<AvatarImage src={client?.logo_uri ?? known?.logo ?? undefined} alt="" />
-						<AvatarFallback className="bg-transparent">
-							<RiAppsLine className="size-6 text-muted-foreground" />
+					<Avatar size="lg" className="size-14 bg-primary/10">
+						<AvatarFallback className="bg-transparent text-primary">
+							<RiBrainLine className="size-6" />
 						</AvatarFallback>
 					</Avatar>
 				</div>
 
-				<div className="flex flex-col items-center gap-0.5">
-					<h1 className="text-center font-heading text-xl font-medium text-balance">Authorize {clientName}</h1>
-					{known && <p className="text-sm text-muted-foreground">{known.description}</p>}
+				<div className="flex flex-col items-center gap-1.5">
+					<h1 className="text-center font-heading text-xl font-medium text-balance">
+						{clientName} wants to access your account
+					</h1>
+					<div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+						<RiShieldKeyholeLine className="size-3.5 shrink-0" />
+						{known ? <span>{known.description}</span> : <span>This application is not verified by {APP_NAME}</span>}
+					</div>
 				</div>
 			</div>
 
-			<div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-lg">
-				<p className="mb-5 text-sm text-muted-foreground">
-					<span className="font-medium text-foreground">{clientName}</span> wants to access your {APP_NAME} account
-					{user && (
-						<>
-							{" "}
-							as <span className="font-medium text-foreground">{user.email}</span>
-						</>
-					)}
-					.
-				</p>
-
-				<div className="mb-5 flex flex-col gap-3 rounded-xl border border-border bg-muted/40 p-4">
-					<p className="text-sm font-medium">This will allow {clientName} to:</p>
+			<div className="grid w-full max-w-2xl overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-lg sm:grid-cols-[1fr_15rem]">
+				<div className="flex flex-col gap-3 p-6">
+					<div className="flex items-center justify-between">
+						<p className="text-sm font-medium">Permissions this app will be granted</p>
+						<span className="shrink-0 text-xs text-muted-foreground">{permissionCount} total</span>
+					</div>
 					<ul className="flex flex-col gap-2.5">
 						{scopes.map((s) => (
 							<li key={s} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -183,34 +149,45 @@ function RouteComponent() {
 					</ul>
 				</div>
 
-				{error && <p className="mb-4 text-sm text-destructive">{error}</p>}
+				<div className="flex flex-col gap-4 border-t border-border bg-muted/30 p-6 sm:border-t-0 sm:border-l">
+					<div className="flex items-center gap-2.5 rounded-xl border border-border bg-card p-2.5">
+						<Avatar size="sm">
+							<AvatarImage src={user?.image ?? undefined} alt="" />
+							<AvatarFallback>{getInitials(user?.name ?? user?.email ?? "?")}</AvatarFallback>
+						</Avatar>
+						<div className="min-w-0 flex-1">
+							<p className="truncate text-sm font-medium text-foreground">{user?.name}</p>
+							<p className="truncate text-xs text-muted-foreground">{user?.email}</p>
+						</div>
+					</div>
 
-				<Button type="button" className="w-full" disabled={isPending !== null} onClick={() => respond(true)}>
-					{isPending === "allow" ? "Please wait..." : `Authorize ${clientName}`}
-				</Button>
+					{error && <p className="text-sm text-destructive">{error}</p>}
 
-				{redirectHost && (
-					<p className="mt-3 text-center text-xs text-muted-foreground">
-						Authorizing will redirect to <span className="font-medium text-foreground">{redirectHost}</span>
+					<div className="flex flex-col gap-2">
+						<Button type="button" className="w-full" disabled={isPending !== null} onClick={() => respond(true)}>
+							{isPending === "allow" ? "Please wait..." : "Authorize"}
+						</Button>
+						<Button
+							type="button"
+							variant="outline"
+							className="w-full"
+							disabled={isPending !== null}
+							onClick={() => respond(false)}
+						>
+							{isPending === "deny" ? "Please wait..." : "Cancel"}
+						</Button>
+					</div>
+
+					<p className="text-center text-xs text-muted-foreground">
+						Only authorize access if you trust {clientName}.
+						{redirectHost && (
+							<>
+								{" "}
+								You'll be redirected to <span className="font-medium text-foreground">{redirectHost}</span>.
+							</>
+						)}
 					</p>
-				)}
-
-				<Button
-					type="button"
-					variant="outline"
-					className="mt-2 w-full"
-					disabled={isPending !== null}
-					onClick={() => respond(false)}
-				>
-					{isPending === "deny" ? "Please wait..." : "Deny access"}
-				</Button>
-			</div>
-
-			<div className="flex w-full max-w-sm items-start gap-2 rounded-xl border border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
-				<RiShieldKeyholeLine className="mt-0.5 size-3.5 shrink-0" />
-				<span>
-					This app was not verified by {APP_NAME}. Only continue if you trust <strong>{clientName}</strong>.
-				</span>
+				</div>
 			</div>
 		</div>
 	);
