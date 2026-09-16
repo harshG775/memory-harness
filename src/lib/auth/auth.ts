@@ -9,6 +9,7 @@ import { db } from "../db";
 
 
 export const MCP_RESOURCE = `${env.SERVER_URL}/mcp`
+export const AUTH_BASE_URL = `${env.SERVER_URL}/api/auth`
 
 
 export function createAuth() {
