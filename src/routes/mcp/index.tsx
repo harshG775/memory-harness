@@ -5,7 +5,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { createAuth, MCP_RESOURCE } from "#/lib/auth/auth";
+import { AUTH_BASE_URL, createAuth, MCP_RESOURCE } from "#/lib/auth/auth";
 
 function createMCPServer(): McpServer {
 	const server = new McpServer(
@@ -34,8 +34,9 @@ function createMCPServer(): McpServer {
 }
 
 function getHandleMcpRequest() {
+	const auth = createAuth();
 	return requireMcpAuth(
-		createAuth(),
+		auth,
 		async (request, accessTokenClaims) => {
 			const transport = new WebStandardStreamableHTTPServerTransport({
 				sessionIdGenerator: undefined,
@@ -44,7 +45,11 @@ function getHandleMcpRequest() {
 			await server.connect(transport);
 			return transport.handleRequest(request);
 		},
-		{ resource: MCP_RESOURCE },
+		{
+			resource: MCP_RESOURCE,
+			issuer: AUTH_BASE_URL,
+			jwksUrl: (() => auth.api.getJwks()) as unknown as string,
+		},
 	);
 }
 
