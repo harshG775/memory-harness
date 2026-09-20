@@ -1,9 +1,8 @@
-import * as React from "react"
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
-import { cn } from "cn"
-
-import { Button } from "#/components/ui/button.tsx"
 import { RiCloseLine } from "@remixicon/react"
+import { cn } from "cn"
+import * as React from "react"
+import { Button } from "#/components/ui/button.tsx"
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -128,11 +127,11 @@ function SheetDescription({
 
 export {
   Sheet,
-  SheetTrigger,
   SheetClose,
   SheetContent,
-  SheetHeader,
-  SheetFooter,
-  SheetTitle,
   SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
 }
