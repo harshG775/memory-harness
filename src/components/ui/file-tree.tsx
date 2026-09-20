@@ -4,7 +4,7 @@ import type * as React from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "#/components/ui/collapsible";
 
 const rowClassName =
-	"flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-sm outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50";
+	"flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-sm outline-none hover:bg-foreground/5 focus-visible:ring-2 focus-visible:ring-ring/50";
 
 function FileTree({ className, ...props }: React.ComponentProps<"ul">) {
 	return <ul data-slot="file-tree" className={cn("flex flex-col gap-0.5", className)} {...props} />;
@@ -12,13 +12,15 @@ function FileTree({ className, ...props }: React.ComponentProps<"ul">) {
 
 type FileTreeFolderProps = {
 	name: string;
+	/** Optional icon shown between the chevron and the name. */
+	icon?: React.ReactNode;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	children?: React.ReactNode;
 	className?: string;
 };
 
-function FileTreeFolder({ name, open, onOpenChange, children, className }: FileTreeFolderProps) {
+function FileTreeFolder({ name, icon, open, onOpenChange, children, className }: FileTreeFolderProps) {
 	return (
 		<li data-slot="file-tree-folder" className={className}>
 			<Collapsible open={open} onOpenChange={onOpenChange}>
@@ -26,6 +28,7 @@ function FileTreeFolder({ name, open, onOpenChange, children, className }: FileT
 					<RiArrowDownSLine
 						className={cn("size-4 shrink-0 text-muted-foreground transition-transform", !open && "-rotate-90")}
 					/>
+					{icon && <span className="shrink-0 text-muted-foreground [&_svg]:size-4">{icon}</span>}
 					<span className="truncate">{name}</span>
 				</CollapsibleTrigger>
 				<CollapsibleContent>
@@ -49,7 +52,11 @@ function FileTreeFile({ name, selected, badge, className, ...props }: FileTreeFi
 			<button
 				type="button"
 				aria-current={selected ? "true" : undefined}
-				className={cn(rowClassName, selected && "bg-muted", className)}
+				className={cn(
+					rowClassName,
+					selected && "bg-background shadow-sm ring-1 ring-foreground/10 hover:bg-background",
+					className,
+				)}
 				{...props}
 			>
 				<span className="min-w-0 flex-1 truncate">{name}</span>

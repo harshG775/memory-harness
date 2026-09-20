@@ -6,7 +6,7 @@ import { z } from "zod";
 import { MemoryExplorer, MemoryExplorerSkeleton } from "#/components/memory-explorer";
 import { Skeleton } from "#/components/ui/skeleton";
 import { UserMenu } from "#/components/user-menu";
-import { Workspace } from "#/components/workspace";
+import { Workspace, WorkspaceProvider } from "#/components/workspace";
 import { authClient } from "#/lib/auth/auth-client";
 import { categoryIdEnum } from "#/lib/db/schema";
 import type { CategoryId } from "#/lib/memory/category";
@@ -86,41 +86,44 @@ function RouteComponent() {
 	}
 
 	return (
-		<Workspace
-			isMainOpen={openId !== null}
+		<WorkspaceProvider
+			mainOpen={openId !== null}
 			onMainOpenChange={(open) => {
 				if (!open) setOpenId(null);
 			}}
 			onMainOpenChangeComplete={(open) => {
 				if (!open && urlId !== null) void navigate({ to: "/memories", search: (prev) => prev });
 			}}
-			primarySidebar={
-				<MemoryExplorer
-					memories={data.memories}
-					selectedId={openId === NEW_KEY ? null : openId}
-					onSelect={openMemory}
-					onNewMemory={openNewMemory}
-					header={
-						<>
-							<span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-								<RiBrainLine className="size-4" />
-							</span>
-							<span className="truncate font-heading text-base font-medium">Memory Harness</span>
-						</>
-					}
-					footer={
-						<UserMenu
-							name={user.name}
-							email={user.email}
-							image={user.image}
-							onOpenConnections={() => void navigate({ to: "/connections" })}
-							onSignOut={signOut}
-						/>
-					}
-				/>
-			}
-			main={isLoadingContent ? <MemorySheetSkeleton /> : <Outlet />}
-		/>
+		>
+			<Workspace
+				primarySidebar={
+					<MemoryExplorer
+						memories={data.memories}
+						selectedId={openId === NEW_KEY ? null : openId}
+						onSelect={openMemory}
+						onNewMemory={openNewMemory}
+						header={
+							<>
+								<span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+									<RiBrainLine className="size-4" />
+								</span>
+								<span className="truncate font-heading text-base font-medium">Memory Harness</span>
+							</>
+						}
+						footer={
+							<UserMenu
+								name={user.name}
+								email={user.email}
+								image={user.image}
+								onOpenConnections={() => void navigate({ to: "/connections" })}
+								onSignOut={signOut}
+							/>
+						}
+					/>
+				}
+				main={isLoadingContent ? <MemorySheetSkeleton /> : <Outlet />}
+			/>
+		</WorkspaceProvider>
 	);
 }
 

@@ -2,6 +2,7 @@ import {
 	RiContractUpDownLine,
 	RiEditBoxLine,
 	RiExpandUpDownLine,
+	RiFolderLine,
 	RiSearchLine,
 	RiSortAsc,
 	RiSortDesc,
@@ -11,6 +12,7 @@ import { Button } from "#/components/ui/button";
 import { FileTree, FileTreeFile, FileTreeFolder } from "#/components/ui/file-tree";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "#/components/ui/input-group";
 import { Skeleton } from "#/components/ui/skeleton";
+import { CATEGORY_ICONS, type CategoryId } from "#/lib/memory/category";
 import { cn } from "#/lib/utils";
 
 export type MemoryTreeItem = {
@@ -86,6 +88,13 @@ type TreeNodesProps = {
 	onSelect: (id: string) => void;
 };
 
+/** Top-level folders are the memory categories, so they get their category icon. */
+function FolderIcon({ name, path }: { name: string; path: string }) {
+	const isCategory = !path.includes("/") && Object.hasOwn(CATEGORY_ICONS, name);
+	const Icon = isCategory ? CATEGORY_ICONS[name as CategoryId] : RiFolderLine;
+	return <Icon />;
+}
+
 /** Maps the memory tree onto the generic FileTree components. */
 function TreeNodes({ nodes, forceOpen, collapsed, selectedId, onToggleFolder, onSelect }: TreeNodesProps) {
 	return (
@@ -95,6 +104,7 @@ function TreeNodes({ nodes, forceOpen, collapsed, selectedId, onToggleFolder, on
 					<FileTreeFolder
 						key={node.path}
 						name={node.name}
+						icon={<FolderIcon name={node.name} path={node.path} />}
 						open={forceOpen || !collapsed.has(node.path)}
 						onOpenChange={() => onToggleFolder(node.path)}
 					>
@@ -158,8 +168,8 @@ export function MemoryExplorer({ memories, selectedId, onSelect, onNewMemory, he
 	}
 
 	return (
-		<div className="flex h-full min-h-0 flex-col">
-			{header && <div className="flex items-center gap-2 px-3 pt-3">{header}</div>}
+		<div className="flex h-full min-h-0 flex-col bg-sidebar text-sidebar-foreground">
+			{header && <div className="flex items-center gap-2 px-3 pt-3 pb-1">{header}</div>}
 
 			<div className="flex items-center justify-center gap-1 p-2">
 				<Button variant="ghost" size="icon-sm" onClick={onNewMemory}>
@@ -182,7 +192,7 @@ export function MemoryExplorer({ memories, selectedId, onSelect, onNewMemory, he
 			</div>
 
 			<div className="px-2 pb-2">
-				<InputGroup>
+				<InputGroup className="border-border bg-background shadow-xs">
 					<InputGroupAddon>
 						<RiSearchLine />
 					</InputGroupAddon>
@@ -209,7 +219,9 @@ export function MemoryExplorer({ memories, selectedId, onSelect, onNewMemory, he
 				)}
 			</nav>
 
-			{footer && <div className="border-t border-border p-2">{footer}</div>}
+			{footer && (
+				<div className="border-t border-border bg-sidebar p-2 shadow-[0_-4px_12px_-6px_rgb(0_0_0/0.08)]">{footer}</div>
+			)}
 		</div>
 	);
 }
@@ -228,7 +240,7 @@ const SKELETON_ROWS = [
 
 export function MemoryExplorerSkeleton() {
 	return (
-		<div className="flex h-full min-h-0 flex-col">
+		<div className="flex h-full min-h-0 flex-col bg-sidebar text-sidebar-foreground">
 			<div className="flex items-center gap-2 px-3 pt-3">
 				<Skeleton className="size-7 rounded-md" />
 				<Skeleton className="h-5 w-32" />

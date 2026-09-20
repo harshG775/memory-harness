@@ -1,36 +1,97 @@
-import { RiCloseLine, RiCollapseDiagonalLine, RiExpandDiagonalLine } from "@remixicon/react";
-import { type ReactNode, useState } from "react";
+import { createContext, type ReactNode, useContext, useState } from "react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "#/components/ui/resizable";
 import { Sheet, SheetContent } from "#/components/ui/sheet";
 import { useIsMobile } from "#/hooks/use-mobile";
 import { cn } from "#/lib/utils";
-import { Button } from "./ui/button";
 
 const SIDEBAR_DEFAULT_WIDTH = 300;
 const SIDEBAR_MIN_WIDTH = 200;
 
+type WorkspaceContextProps = {
+	isMobile: boolean;
+	/** Mobile only: whether the bottom sheet showing the main content is open. */
+	isMainOpen: boolean;
+	setMainOpen: (open: boolean) => void;
+	/** Mobile only: whether the sheet fills the screen. */
+	isMaximized: boolean;
+	setMaximized: (maximized: boolean) => void;
+	toggleMaximized: () => void;
+	/** Mobile only: fires once the sheet has finished its open/close animation. */
+	onMainOpenChangeComplete?: (open: boolean) => void;
+};
+
+const WorkspaceContext = createContext<WorkspaceContextProps | null>(null);
+
+export function useWorkspace() {
+	const context = useContext(WorkspaceContext);
+	if (!context) {
+		throw new Error("useWorkspace must be used within a WorkspaceProvider.");
+	}
+
+	return context;
+}
+
+type WorkspaceProviderProps = {
+	defaultMainOpen?: boolean;
+	/** Controlled open state; pass it together with `onMainOpenChange`. */
+	mainOpen?: boolean;
+	onMainOpenChange?: (open: boolean) => void;
+	onMainOpenChangeComplete?: (open: boolean) => void;
+	defaultMaximized?: boolean;
+	children: ReactNode;
+};
+
+export function WorkspaceProvider({
+	defaultMainOpen = false,
+	mainOpen: mainOpenProp,
+	onMainOpenChange,
+	onMainOpenChangeComplete,
+	defaultMaximized = true,
+	children,
+}: WorkspaceProviderProps) {
+	const isMobile = useIsMobile();
+
+	// Works uncontrolled (internal state) or controlled (e.g. driven by the URL).
+	const [uncontrolledMainOpen, setUncontrolledMainOpen] = useState(defaultMainOpen);
+	const isMainOpen = mainOpenProp ?? uncontrolledMainOpen;
+
+	function setMainOpen(open: boolean) {
+		if (mainOpenProp === undefined) setUncontrolledMainOpen(open);
+		onMainOpenChange?.(open);
+	}
+
+	const [isMaximized, setMaximized] = useState(defaultMaximized);
+
+	return (
+		<WorkspaceContext.Provider
+			value={{
+				isMobile,
+				isMainOpen,
+				setMainOpen,
+				isMaximized,
+				setMaximized,
+				toggleMaximized: () => setMaximized((value) => !value),
+				onMainOpenChangeComplete,
+			}}
+		>
+			{children}
+		</WorkspaceContext.Provider>
+	);
+}
+
 type WorkspaceProps = {
 	primarySidebar: ReactNode;
 	main: ReactNode;
-	isMainOpen: boolean;
-	onMainOpenChange: (open: boolean) => void;
-	onMainOpenChangeComplete: (open: boolean) => void;
 };
 
-export function Workspace({
-	primarySidebar,
-	main,
-	isMainOpen,
-	onMainOpenChange,
-	onMainOpenChangeComplete,
-}: WorkspaceProps) {
-	const isMo = useIsMobile();
-	const [isMaximized, setIsMaximized] = useState(true);
+/** Layout only; open/maximized state comes from the surrounding WorkspaceProvider. */
+export function Workspace({ primarySidebar, main }: WorkspaceProps) {
+	const { isMobile, isMainOpen, setMainOpen, isMaximized, onMainOpenChangeComplete } = useWorkspace();
 
 	return (
 		<ResizablePanelGroup orientation="horizontal" className="fixed inset-0">
 			<ResizablePanel
-				{...(isMo
+				{...(isMobile
 					? {}
 					: {
 							defaultSize: SIDEBAR_DEFAULT_WIDTH,
@@ -43,11 +104,11 @@ export function Workspace({
 				{primarySidebar}
 			</ResizablePanel>
 
-			{isMo ? (
+			{isMobile ? (
 				<Sheet
 					open={isMainOpen}
 					modal={false}
-					onOpenChange={onMainOpenChange}
+					onOpenChange={setMainOpen}
 					onOpenChangeComplete={onMainOpenChangeComplete}
 				>
 					<SheetContent
@@ -61,23 +122,7 @@ export function Workspace({
 								: "data-[side=bottom]:h-[70dvh]",
 						)}
 					>
-						<div className="sticky top-0 right-0 flex justify-end bg-sidebar">
-							<Button variant="ghost" size="icon-sm" onClick={() => setIsMaximized((value) => !value)}>
-								{isMaximized ? <RiCollapseDiagonalLine /> : <RiExpandDiagonalLine />}
-								<span className="sr-only">{isMaximized ? "Minimize" : "Maximize"}</span>
-							</Button>
-							<Button
-								variant="ghost"
-								size="icon-sm"
-								onClick={() => {
-									onMainOpenChange(false);
-								}}
-							>
-								<RiCloseLine />
-								<span className="sr-only">Close</span>
-							</Button>
-						</div>
-						<div className="overflow-auto">{main}</div>
+						{main}
 					</SheetContent>
 				</Sheet>
 			) : (
