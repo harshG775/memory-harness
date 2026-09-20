@@ -223,7 +223,17 @@ function RouteComponent() {
 	const { _splat } = Route.useParams();
 	// URLs: /notes-ui-test/notes and /notes-ui-test/notes/<note-id>
 	const [section, noteId] = (_splat ?? "").split("/");
-	const selectedId = section === "notes" ? (noteId ?? null) : null;
+	const urlId = section === "notes" ? (noteId ?? null) : null;
+
+	// The UI follows local state so it responds on click instead of waiting for
+	// the router (beforeLoad/loaders) to finish. The URL is kept in sync, and
+	// external changes (back/forward, direct links) flow back into local state.
+	const [selectedId, setSelectedId] = useState(urlId);
+	const [prevUrlId, setPrevUrlId] = useState(urlId);
+	if (urlId !== prevUrlId) {
+		setPrevUrlId(urlId);
+		setSelectedId(urlId);
+	}
 
 	const [notes, setNotes] = useState(createMockNotes);
 	const selectedNote = notes.find((note) => note.id === selectedId) ?? null;
@@ -238,10 +248,12 @@ function RouteComponent() {
 	});
 
 	function openNote(id: string) {
+		setSelectedId(id);
 		void navigate({ to: "/notes-ui-test/$", params: { _splat: `notes/${id}` } });
 	}
 
 	function closeNote() {
+		setSelectedId(null);
 		void navigate({ to: "/notes-ui-test/$", params: { _splat: "notes" } });
 	}
 
