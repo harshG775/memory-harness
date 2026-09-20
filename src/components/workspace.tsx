@@ -1,20 +1,22 @@
-import type { ReactNode } from "react";
+import { RiCloseLine, RiCollapseDiagonalLine, RiExpandDiagonalLine } from "@remixicon/react";
+import { type ReactNode, useState } from "react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "#/components/ui/resizable";
 import { Sheet, SheetContent } from "#/components/ui/sheet";
 import { useIsMobile } from "#/hooks/use-mobile";
 import { cn } from "#/lib/utils";
+import { Button } from "./ui/button";
+
+const SIDEBAR_DEFAULT_WIDTH = 300;
+const SIDEBAR_MIN_WIDTH = 200;
 
 type WorkspaceProps = {
 	primarySidebar: ReactNode;
 	main: ReactNode;
-	/** Mobile only: whether the bottom sheet showing `main` is open. */
 	isMainOpen: boolean;
 	onMainOpenChange: (open: boolean) => void;
-	/** Mobile only: fires once the sheet has finished its open/close animation. */
 	onMainOpenChangeComplete: (open: boolean) => void;
 };
 
-/** Presentational layout: sidebar + main panel (desktop) or bottom sheet (mobile). */
 export function Workspace({
 	primarySidebar,
 	main,
@@ -23,11 +25,21 @@ export function Workspace({
 	onMainOpenChangeComplete,
 }: WorkspaceProps) {
 	const isMo = useIsMobile();
-	const isMaximized = false;
+	const [isMaximized, setIsMaximized] = useState(true);
 
 	return (
 		<ResizablePanelGroup orientation="horizontal" className="fixed inset-0">
-			<ResizablePanel minSize={"20%"} defaultSize={"20%"} className="overflow-auto">
+			<ResizablePanel
+				{...(isMo
+					? {}
+					: {
+							defaultSize: SIDEBAR_DEFAULT_WIDTH,
+							minSize: SIDEBAR_MIN_WIDTH,
+							maxSize: "50%",
+							groupResizeBehavior: "preserve-pixel-size",
+						})}
+				className="overflow-auto"
+			>
 				{primarySidebar}
 			</ResizablePanel>
 
@@ -43,13 +55,29 @@ export function Workspace({
 						showCloseButton={false}
 						overlayClassName="pointer-events-none bg-black opacity-10 supports-backdrop-filter:backdrop-blur-none"
 						className={cn(
-							"rounded-t-2xl transition-[height,opacity,translate] duration-200",
+							"rounded-t-2xl transition-[height,opacity,translate] duration-200 shadow-2xl rounded-2xl overflow-hidden",
 							isMaximized
 								? "data-[side=bottom]:h-dvh data-[side=bottom]:rounded-t-none"
-								: "data-[side=bottom]:h-[60dvh]",
+								: "data-[side=bottom]:h-[70dvh]",
 						)}
 					>
-						{main}
+						<div className="sticky top-0 right-0 flex justify-end bg-sidebar">
+							<Button variant="ghost" size="icon-sm" onClick={() => setIsMaximized((value) => !value)}>
+								{isMaximized ? <RiCollapseDiagonalLine /> : <RiExpandDiagonalLine />}
+								<span className="sr-only">{isMaximized ? "Minimize" : "Maximize"}</span>
+							</Button>
+							<Button
+								variant="ghost"
+								size="icon-sm"
+								onClick={() => {
+									onMainOpenChange(false);
+								}}
+							>
+								<RiCloseLine />
+								<span className="sr-only">Close</span>
+							</Button>
+						</div>
+						<div className="overflow-auto">{main}</div>
 					</SheetContent>
 				</Sheet>
 			) : (

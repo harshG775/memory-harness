@@ -30,7 +30,8 @@ const memoriesQueryOptions = (categoryId: CategoryId | undefined, sortBy: SortBy
 function MemoriesSkeleton() {
 	return (
 		<div className="fixed inset-0 flex">
-			<div className="w-full md:w-1/5 md:border-r md:border-border">
+			{/* md:w-75 = 300px, the Workspace sidebar's default width */}
+			<div className="w-full md:w-75 md:border-r md:border-border">
 				<MemoryExplorerSkeleton />
 			</div>
 		</div>
