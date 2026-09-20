@@ -1,4 +1,4 @@
-import {
+﻿import {
 	RiArrowLeftLine,
 	RiDeleteBinLine,
 	RiFileTextLine,
@@ -62,21 +62,22 @@ const memoryQueryOptions = (id: string) =>
 		queryFn: () => getMemoryByIdFn({ data: { id } }),
 	});
 
-export const Route = createFileRoute("/_authed/memories/$memory_id/")({
+export const Route = createFileRoute("/_authed/memories/$id/")({
 	validateSearch: z.object({
 		edit: z.boolean().optional(),
 	}),
+	remountDeps: ({ params }) => params.id,
 	loader: async ({ context, params }) => {
-		const memory = await context.queryClient.query(memoryQueryOptions(params.memory_id));
+		const memory = await context.queryClient.query(memoryQueryOptions(params.id));
 		if (!memory) throw notFound();
 	},
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const { memory_id } = Route.useParams();
+	const { id } = Route.useParams();
 	const { edit } = Route.useSearch();
-	const { data: memory } = useSuspenseQuery(memoryQueryOptions(memory_id));
+	const { data: memory } = useSuspenseQuery(memoryQueryOptions(id));
 	const router = useRouter();
 	const navigate = useNavigate({ from: Route.fullPath });
 	const queryClient = useQueryClient();
@@ -107,7 +108,7 @@ function RouteComponent() {
 		onSuccess: async () => {
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: ["memories"] }),
-				queryClient.invalidateQueries({ queryKey: ["memory", memory_id] }),
+				queryClient.invalidateQueries({ queryKey: ["memory", id] }),
 			]);
 			void navigate({ search: (prev) => ({ ...prev, edit: undefined }) });
 		},
@@ -145,7 +146,7 @@ function RouteComponent() {
 		event.preventDefault();
 		saveMemory({
 			data: {
-				id: memory_id,
+				id,
 				categoryId,
 				content: stringifyMarkdown({
 					frontmatter: { name, description, sources, aliases },
