@@ -17,6 +17,7 @@ import { Route as PublicSignInRouteImport } from './routes/_public/sign-in'
 import { Route as McpIndexRouteImport } from './routes/mcp/index'
 import { Route as AuthedConnectionsIndexRouteImport } from './routes/_authed/connections/index'
 import { Route as AuthedMemoriesIndexRouteImport } from './routes/_authed/memories/index'
+import { Route as AuthedNotesUiTestSplatRouteImport } from './routes/_authed/notes-ui-test/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiLogosSlugRouteImport } from './routes/api/logos/$slug'
 import { Route as AuthedMemoriesMemory_idIndexRouteImport } from './routes/_authed/memories/$memory_id/index'
@@ -61,6 +62,11 @@ const AuthedMemoriesIndexRoute = AuthedMemoriesIndexRouteImport.update({
   path: '/memories/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
+const AuthedNotesUiTestSplatRoute = AuthedNotesUiTestSplatRouteImport.update({
+  id: '/notes-ui-test/$',
+  path: '/notes-ui-test/$',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/consent': typeof PublicConsentRoute
   '/sign-in': typeof PublicSignInRoute
   '/mcp/': typeof McpIndexRoute
+  '/notes-ui-test/$': typeof AuthedNotesUiTestSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/logos/$slug': typeof ApiLogosSlugRoute
   '/connections/': typeof AuthedConnectionsIndexRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/consent': typeof PublicConsentRoute
   '/sign-in': typeof PublicSignInRoute
   '/mcp': typeof McpIndexRoute
+  '/notes-ui-test/$': typeof AuthedNotesUiTestSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/logos/$slug': typeof ApiLogosSlugRoute
   '/connections': typeof AuthedConnectionsIndexRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/_public/consent': typeof PublicConsentRoute
   '/_public/sign-in': typeof PublicSignInRoute
   '/mcp/': typeof McpIndexRoute
+  '/_authed/notes-ui-test/$': typeof AuthedNotesUiTestSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/logos/$slug': typeof ApiLogosSlugRoute
   '/_authed/connections/': typeof AuthedConnectionsIndexRoute
@@ -132,6 +141,7 @@ export interface FileRouteTypes {
     | '/consent'
     | '/sign-in'
     | '/mcp/'
+    | '/notes-ui-test/$'
     | '/api/auth/$'
     | '/api/logos/$slug'
     | '/connections/'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
     | '/consent'
     | '/sign-in'
     | '/mcp'
+    | '/notes-ui-test/$'
     | '/api/auth/$'
     | '/api/logos/$slug'
     | '/connections'
@@ -159,6 +170,7 @@ export interface FileRouteTypes {
     | '/_public/consent'
     | '/_public/sign-in'
     | '/mcp/'
+    | '/_authed/notes-ui-test/$'
     | '/api/auth/$'
     | '/api/logos/$slug'
     | '/_authed/connections/'
@@ -236,6 +248,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedMemoriesIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/notes-ui-test/$': {
+      id: '/_authed/notes-ui-test/$'
+      path: '/notes-ui-test/$'
+      fullPath: '/notes-ui-test/$'
+      preLoaderRoute: typeof AuthedNotesUiTestSplatRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -268,6 +287,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthedRouteRouteChildren {
+  AuthedNotesUiTestSplatRoute: typeof AuthedNotesUiTestSplatRoute
   AuthedConnectionsIndexRoute: typeof AuthedConnectionsIndexRoute
   AuthedMemoriesIndexRoute: typeof AuthedMemoriesIndexRoute
   AuthedMemoriesMemory_idIndexRoute: typeof AuthedMemoriesMemory_idIndexRoute
@@ -275,6 +295,7 @@ interface AuthedRouteRouteChildren {
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
+  AuthedNotesUiTestSplatRoute: AuthedNotesUiTestSplatRoute,
   AuthedConnectionsIndexRoute: AuthedConnectionsIndexRoute,
   AuthedMemoriesIndexRoute: AuthedMemoriesIndexRoute,
   AuthedMemoriesMemory_idIndexRoute: AuthedMemoriesMemory_idIndexRoute,
