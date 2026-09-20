@@ -61,9 +61,7 @@ function RouteComponent() {
 	const { id } = useParams({ strict: false });
 	const urlId = id ?? null;
 
-	// The sheet follows local state so it opens on click instead of waiting for the
-	// child route's beforeLoad/loader. External URL changes (back/forward, direct
-	// links) are copied back into it.
+
 	const [openId, setOpenId] = useState(urlId);
 	const [prevUrlId, setPrevUrlId] = useState(urlId);
 	if (urlId !== prevUrlId) {
@@ -71,7 +69,6 @@ function RouteComponent() {
 		setOpenId(urlId);
 	}
 
-	// Opened but the router hasn't finished loading that memory yet.
 	const isLoadingContent = openId !== null && openId !== urlId;
 
 	return (
@@ -80,8 +77,6 @@ function RouteComponent() {
 			onMainOpenChange={(open) => {
 				if (!open) setOpenId(null);
 			}}
-			// Leave the URL alone until the exit animation is done, so the sheet keeps
-			// showing the memory (not the list page) while it slides out.
 			onMainOpenChangeComplete={(open) => {
 				if (!open && urlId !== null) void navigate({ to: "/memories", search: (prev) => prev });
 			}}
@@ -103,6 +98,7 @@ function RouteComponent() {
 }
 
 export const Route = createFileRoute("/_authed/memories")({
+	ssr: false,
 	validateSearch: z.object({
 		category: z.enum(categoryIdEnum.enumValues).optional(),
 		sortBy: z.enum(sortByEnum).optional(),
