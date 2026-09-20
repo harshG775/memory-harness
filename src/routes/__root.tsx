@@ -46,7 +46,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 			<head>
 				<HeadContent />
 			</head>
-			<body className="font-sans antialiased wrap-anywhere selection:bg-primary">
+			<body className="font-sans antialiased wrap-anywhere selection:bg-primary/15">
 				<RouteProgressBar />
 				<ThemeProvider>
 					<TooltipProvider>{children}</TooltipProvider>
