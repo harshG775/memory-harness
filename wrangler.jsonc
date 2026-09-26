@@ -1,17 +1,25 @@
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "memory-harness",
-	"compatibility_date": "2026-09-15",
-	"compatibility_flags": [
-		"nodejs_compat"
-	],
-	"main": "@tanstack/react-start/server-entry",
-	"vars": {
-		"SERVER_URL": "https://memory-harness.hgaur491.workers.dev"
-	},
-	"observability": {
-		"logs": {
-			"enabled": true
-		}
-	},
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "memory-harness",
+    "compatibility_date": "2026-09-15",
+    "compatibility_flags": ["nodejs_compat"],
+    "main": "@tanstack/react-start/server-entry",
+    "vars": {
+        "SERVER_URL": "https://memory-harness.hgaur491.workers.dev",
+    },
+    "observability": {
+        "logs": {
+            "enabled": true,
+        },
+    },
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "memory-harness",
+            "database_id": "c6a3e6b6-959a-4e20-867c-77c4f9750039",
+            "migrations_dir": "src/lib/db/migrations",
+            "migrations_pattern": "src/lib/db/migrations/*/migration.sql",
+        },
+    ],
 }
+    

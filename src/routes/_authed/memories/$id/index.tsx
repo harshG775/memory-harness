@@ -33,7 +33,6 @@ import {
 	getMemoryByIdFn,
 	updateMemoryFn,
 } from "#/lib/server/memories.function";
-import { cn } from "#/lib/utils";
 
 type CreatableCategoryId = (typeof creatableCategoryIdEnum)[number];
 
@@ -227,13 +226,6 @@ function RouteComponent() {
 						</div>
 					</div>
 					<div className="flex items-center gap-3 border-y border-border py-3 text-xs text-muted-foreground">
-						<span className="flex items-center gap-1">
-							<span
-								className={cn("size-1.5 rounded-full", memory.embedding ? "bg-emerald-500" : "bg-muted-foreground/40")}
-							/>
-							{memory.embedding ? "Embedded" : "Not embedded"}
-						</span>
-						<span>&middot;</span>
 						<span>{formatBytes(memory.sizeBytes)}</span>
 						<span>&middot;</span>
 						<span>Updated {formatRelativeTime(memory.updatedAt)}</span>

@@ -1,26 +1,34 @@
-import { boolean, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
-export const user = pgTable("user", {
+// better-auth's drizzle adapter JSON-stringifies arrays and json fields itself on non-pg providers,
+// so those columns are plain `text` here (not `{ mode: "json" }`, which would double-encode).
+
+const timestamp = (name: string) => integer(name, { mode: "timestamp_ms" });
+const boolean = (name: string) => integer(name, { mode: "boolean" });
+const now = sql`(cast(unixepoch('subsecond') * 1000 as integer))`;
+
+export const user = sqliteTable("user", {
 	id: text("id").primaryKey(),
 	name: text("name").notNull(),
 	email: text("email").notNull().unique(),
 	emailVerified: boolean("email_verified").default(false).notNull(),
 	image: text("image"),
 	username: text("username").unique(),
-	createdAt: timestamp("created_at").defaultNow().notNull(),
+	createdAt: timestamp("created_at").default(now).notNull(),
 	updatedAt: timestamp("updated_at")
-		.defaultNow()
+		.default(now)
 		.$onUpdate(() => /* @__PURE__ */ new Date())
 		.notNull(),
 });
 
-export const session = pgTable(
+export const session = sqliteTable(
 	"session",
 	{
 		id: text("id").primaryKey(),
 		expiresAt: timestamp("expires_at").notNull(),
 		token: text("token").notNull().unique(),
-		createdAt: timestamp("created_at").defaultNow().notNull(),
+		createdAt: timestamp("created_at").default(now).notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => /* @__PURE__ */ new Date())
 			.notNull(),
@@ -33,7 +41,7 @@ export const session = pgTable(
 	(table) => [index("session_userId_idx").on(table.userId)],
 );
 
-export const account = pgTable(
+export const account = sqliteTable(
 	"account",
 	{
 		id: text("id").primaryKey(),
@@ -49,7 +57,7 @@ export const account = pgTable(
 		refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
 		scope: text("scope"),
 		password: text("password"),
-		createdAt: timestamp("created_at").defaultNow().notNull(),
+		createdAt: timestamp("created_at").default(now).notNull(),
 		updatedAt: timestamp("updated_at")
 			.$onUpdate(() => /* @__PURE__ */ new Date())
 			.notNull(),
@@ -57,23 +65,23 @@ export const account = pgTable(
 	(table) => [index("account_userId_idx").on(table.userId)],
 );
 
-export const verification = pgTable(
+export const verification = sqliteTable(
 	"verification",
 	{
 		id: text("id").primaryKey(),
 		identifier: text("identifier").notNull(),
 		value: text("value").notNull(),
 		expiresAt: timestamp("expires_at").notNull(),
-		createdAt: timestamp("created_at").defaultNow().notNull(),
+		createdAt: timestamp("created_at").default(now).notNull(),
 		updatedAt: timestamp("updated_at")
-			.defaultNow()
+			.default(now)
 			.$onUpdate(() => /* @__PURE__ */ new Date())
 			.notNull(),
 	},
 	(table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
-export const jwks = pgTable("jwks", {
+export const jwks = sqliteTable("jwks", {
 	id: text("id").primaryKey(),
 	publicKey: text("public_key").notNull(),
 	privateKey: text("private_key").notNull(),
@@ -83,7 +91,7 @@ export const jwks = pgTable("jwks", {
 	crv: text("crv"),
 });
 
-export const oauthClient = pgTable(
+export const oauthClient = sqliteTable(
 	"oauth_client",
 	{
 		id: text("id").primaryKey(),
@@ -94,39 +102,39 @@ export const oauthClient = pgTable(
 		skipConsent: boolean("skip_consent"),
 		enableEndSession: boolean("enable_end_session"),
 		subjectType: text("subject_type"),
-		scopes: text("scopes").array(),
-		clientCredentialsScopes: text("client_credentials_scopes").array().default([]),
+		scopes: text("scopes"),
+		clientCredentialsScopes: text("client_credentials_scopes").default("[]"),
 		userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
 		createdAt: timestamp("created_at"),
 		updatedAt: timestamp("updated_at"),
 		name: text("name"),
 		uri: text("uri"),
 		icon: text("icon"),
-		contacts: text("contacts").array(),
+		contacts: text("contacts"),
 		tos: text("tos"),
 		policy: text("policy"),
 		softwareId: text("software_id"),
 		softwareVersion: text("software_version"),
 		softwareStatement: text("software_statement"),
-		redirectUris: text("redirect_uris").array().notNull(),
-		postLogoutRedirectUris: text("post_logout_redirect_uris").array(),
+		redirectUris: text("redirect_uris").notNull(),
+		postLogoutRedirectUris: text("post_logout_redirect_uris"),
 		backchannelLogoutUri: text("backchannel_logout_uri"),
 		backchannelLogoutSessionRequired: boolean("backchannel_logout_session_required"),
 		tokenEndpointAuthMethod: text("token_endpoint_auth_method"),
 		applicationType: text("application_type"),
 		jwks: text("jwks"),
 		jwksUri: text("jwks_uri"),
-		grantTypes: text("grant_types").array(),
-		responseTypes: text("response_types").array(),
+		grantTypes: text("grant_types"),
+		responseTypes: text("response_types"),
 		requirePKCE: boolean("require_pkce"),
 		dpopBoundAccessTokens: boolean("dpop_bound_access_tokens").default(false),
 		referenceId: text("reference_id"),
-		metadata: jsonb("metadata"),
+		metadata: text("metadata"),
 	},
 	(table) => [index("oauthClient_userId_idx").on(table.userId)],
 );
 
-export const oauthResource = pgTable("oauth_resource", {
+export const oauthResource = sqliteTable("oauth_resource", {
 	id: text("id").primaryKey(),
 	identifier: text("identifier").notNull().unique(),
 	name: text("name").notNull(),
@@ -134,17 +142,17 @@ export const oauthResource = pgTable("oauth_resource", {
 	refreshTokenTtl: integer("refresh_token_ttl"),
 	signingAlgorithm: text("signing_algorithm"),
 	signingKeyId: text("signing_key_id"),
-	allowedScopes: text("allowed_scopes").array(),
-	customClaims: jsonb("custom_claims"),
+	allowedScopes: text("allowed_scopes"),
+	customClaims: text("custom_claims"),
 	dpopBoundAccessTokensRequired: boolean("dpop_bound_access_tokens_required").default(false),
 	disabled: boolean("disabled").default(false),
 	createdAt: timestamp("created_at"),
 	updatedAt: timestamp("updated_at"),
 	policyVersion: integer("policy_version").default(1),
-	metadata: jsonb("metadata"),
+	metadata: text("metadata"),
 });
 
-export const oauthClientResource = pgTable(
+export const oauthClientResource = sqliteTable(
 	"oauth_client_resource",
 	{
 		id: text("id").primaryKey(),
@@ -154,7 +162,7 @@ export const oauthClientResource = pgTable(
 		resourceId: text("resource_id")
 			.notNull()
 			.references(() => oauthResource.identifier, { onDelete: "cascade" }),
-		metadata: jsonb("metadata"),
+		metadata: text("metadata"),
 		createdAt: timestamp("created_at"),
 	},
 	(table) => [
@@ -164,7 +172,7 @@ export const oauthClientResource = pgTable(
 	],
 );
 
-export const oauthRefreshToken = pgTable(
+export const oauthRefreshToken = sqliteTable(
 	"oauth_refresh_token",
 	{
 		id: text("id").primaryKey(),
@@ -180,8 +188,8 @@ export const oauthRefreshToken = pgTable(
 			.references(() => user.id, { onDelete: "cascade" }),
 		referenceId: text("reference_id"),
 		authorizationCodeId: text("authorization_code_id"),
-		resources: text("resources").array(),
-		requestedUserInfoClaims: text("requested_user_info_claims").array(),
+		resources: text("resources"),
+		requestedUserInfoClaims: text("requested_user_info_claims"),
 		expiresAt: timestamp("expires_at").notNull(),
 		createdAt: timestamp("created_at").notNull(),
 		revoked: timestamp("revoked"),
@@ -189,8 +197,8 @@ export const oauthRefreshToken = pgTable(
 		rotationReplayResponse: text("rotation_replay_response"),
 		rotationReplayExpiresAt: timestamp("rotation_replay_expires_at"),
 		authTime: timestamp("auth_time"),
-		confirmation: jsonb("confirmation"),
-		scopes: text("scopes").array().notNull(),
+		confirmation: text("confirmation"),
+		scopes: text("scopes").notNull(),
 	},
 	(table) => [
 		index("oauthRefreshToken_clientId_idx").on(table.clientId),
@@ -200,7 +208,7 @@ export const oauthRefreshToken = pgTable(
 	],
 );
 
-export const oauthAccessToken = pgTable(
+export const oauthAccessToken = sqliteTable(
 	"oauth_access_token",
 	{
 		id: text("id").primaryKey(),
@@ -214,16 +222,16 @@ export const oauthAccessToken = pgTable(
 		userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
 		referenceId: text("reference_id"),
 		authorizationCodeId: text("authorization_code_id"),
-		resources: text("resources").array(),
-		requestedUserInfoClaims: text("requested_user_info_claims").array(),
+		resources: text("resources"),
+		requestedUserInfoClaims: text("requested_user_info_claims"),
 		refreshId: text("refresh_id").references(() => oauthRefreshToken.id, {
 			onDelete: "cascade",
 		}),
 		expiresAt: timestamp("expires_at").notNull(),
 		createdAt: timestamp("created_at").notNull(),
 		revoked: timestamp("revoked"),
-		confirmation: jsonb("confirmation"),
-		scopes: text("scopes").array().notNull(),
+		confirmation: text("confirmation"),
+		scopes: text("scopes").notNull(),
 	},
 	(table) => [
 		index("oauthAccessToken_clientId_idx").on(table.clientId),
@@ -234,7 +242,7 @@ export const oauthAccessToken = pgTable(
 	],
 );
 
-export const oauthConsent = pgTable(
+export const oauthConsent = sqliteTable(
 	"oauth_consent",
 	{
 		id: text("id").primaryKey(),
@@ -243,16 +251,16 @@ export const oauthConsent = pgTable(
 			.references(() => oauthClient.clientId, { onDelete: "cascade" }),
 		userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
 		referenceId: text("reference_id"),
-		resources: text("resources").array(),
-		requestedUserInfoClaims: text("requested_user_info_claims").array(),
-		scopes: text("scopes").array().notNull(),
+		resources: text("resources"),
+		requestedUserInfoClaims: text("requested_user_info_claims"),
+		scopes: text("scopes").notNull(),
 		createdAt: timestamp("created_at").notNull(),
 		updatedAt: timestamp("updated_at").notNull(),
 	},
 	(table) => [index("oauthConsent_clientId_idx").on(table.clientId), index("oauthConsent_userId_idx").on(table.userId)],
 );
 
-export const oauthClientAssertion = pgTable("oauth_client_assertion", {
+export const oauthClientAssertion = sqliteTable("oauth_client_assertion", {
 	id: text("id").primaryKey(),
 	expiresAt: timestamp("expires_at").notNull(),
 });

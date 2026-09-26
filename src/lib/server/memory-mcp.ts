@@ -1,5 +1,6 @@
 import { and, asc, eq, gt, isNull, like, sql } from "drizzle-orm";
 import { db } from "../db";
+import { memoryFts } from "../db/fts";
 import type { categoryIdEnum } from "../db/schema/memory-schema";
 import { memory } from "../db/schema/memory-schema";
 
@@ -227,8 +228,10 @@ export async function deleteMemory(userId: string, input: { path: string; if_ver
 }
 
 export async function searchMemories(userId: string, input: { query: string; categoryId?: CategoryId; limit: number }) {
-	const tsvector = sql`to_tsvector('english', coalesce(${memory.name}, '') || ' ' || coalesce(${memory.description}, '') || ' ' || coalesce(${memory.content}, ''))`;
-	const tsquery = sql`plainto_tsquery('english', ${input.query})`;
+	// plainto_tsquery semantics: every word must match. Quoting each token keeps FTS5 syntax out of user input.
+	const tokens = input.query.match(/[\p{L}\p{N}_]+/gu);
+	if (!tokens) return [];
+	const matchQuery = tokens.map((t) => `"${t}"`).join(" ");
 
 	const rows = await db
 		.select({
@@ -238,15 +241,16 @@ export async function searchMemories(userId: string, input: { query: string; cat
 			categoryId: memory.categoryId,
 		})
 		.from(memory)
+		.innerJoin(memoryFts, eq(memoryFts.memoryId, memory.id))
 		.where(
 			and(
 				eq(memory.userId, userId),
 				isNull(memory.deletedAt),
 				input.categoryId ? eq(memory.categoryId, input.categoryId) : undefined,
-				sql`${tsvector} @@ ${tsquery}`,
+				sql`${memoryFts} MATCH ${matchQuery}`,
 			),
 		)
-		.orderBy(sql`ts_rank(${tsvector}, ${tsquery}) DESC`)
+		.orderBy(sql`bm25(${memoryFts})`)
 		.limit(input.limit);
 
 	return rows;

@@ -23,7 +23,8 @@ export const getConnectionsFn = createServerFn({ method: "GET" })
 			.where(eq(oauthConsent.userId, context.session.user.id))
 			.orderBy(desc(oauthConsent.updatedAt));
 
-		return rows;
+		// better-auth stores array fields as JSON text on SQLite
+		return rows.map((row) => ({ ...row, scopes: JSON.parse(row.scopes) as string[] }));
 	});
 
 export const revokeConnectionFn = createServerFn({ method: "POST" })
