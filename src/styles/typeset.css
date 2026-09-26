@@ -442,3 +442,14 @@
         margin-block-start: 0;
     }
 }
+
+@layer components {
+    .typeset-docs {
+        --typeset-font-body: var(--font-noto-sans);
+        --typeset-font-heading: var(--font-noto-sans);
+        --typeset-font-mono: var(--font-jetbrains-mono);
+        --typeset-size: 15px;
+        --typeset-leading: 1.75;
+        --typeset-flow: 1.25em;
+    }
+}

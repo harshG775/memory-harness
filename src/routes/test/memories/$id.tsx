@@ -102,7 +102,7 @@ function RouteComponent() {
 						/>
 					</div>
 				) : (
-					<div className="typeset">
+					<div className="typeset typeset-docs">
 						<pre>{frontmatter}</pre>
 						<Markdown>{body}</Markdown>
 					</div>

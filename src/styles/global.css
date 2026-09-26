@@ -3,5 +3,6 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/noto-sans";
 @import "@fontsource-variable/eb-garamond";
+@import "@fontsource-variable/jetbrains-mono";
 @import "./base.css";
 @import "./typeset.css";
