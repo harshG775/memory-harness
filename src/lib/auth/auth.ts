@@ -16,7 +16,7 @@ export function createAuth() {
 	return betterAuth({
 		baseURL: env.SERVER_URL,
 		database: drizzleAdapter(db, {
-			provider: "pg",
+			provider: "sqlite",
 			schema: schema,
 		}),
 		emailAndPassword: {

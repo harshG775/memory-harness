@@ -1,11 +1,14 @@
 import { sql } from "drizzle-orm";
-import { boolean, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, vector } from "drizzle-orm/pg-core";
+import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { user } from "./auth-schema";
 
-export const categoryIdEnum = pgEnum("category_id", ["you", "topics", "areas", "people", "sessions"]);
-export const memoryKindEnum = pgEnum("memory_kind", ["entry", "toc"]);
+// SQLite has no native enums; same `.enumValues` shape as pgEnum so call sites stay unchanged.
+export const categoryIdEnum = { enumValues: ["you", "topics", "areas", "people", "sessions"] as const };
+export const memoryKindEnum = { enumValues: ["entry", "toc"] as const };
 
-export const memory = pgTable(
+const now = sql`(cast(unixepoch('subsecond') * 1000 as integer))`;
+
+export const memory = sqliteTable(
 	"memory",
 	{
 		id: text("id").primaryKey(),
@@ -17,32 +20,27 @@ export const memory = pgTable(
 		sizeBytes: integer("size_bytes").notNull(),
 
 		//
-		categoryId: categoryIdEnum("category_id").notNull(),
-		isSingleton: boolean("is_singleton").notNull().default(false),
-		kind: memoryKindEnum("kind").notNull().default("entry"),
+		categoryId: text("category_id", { enum: categoryIdEnum.enumValues }).notNull(),
+		isSingleton: integer("is_singleton", { mode: "boolean" }).notNull().default(false),
+		kind: text("kind", { enum: memoryKindEnum.enumValues }).notNull().default("entry"),
 
 		//
 		name: text("name").notNull(),
 		description: text("description").notNull(),
 		content: text("content").notNull().default(""),
 
-		//
-		embedding: vector("embedding", { dimensions: 1536 }),
-		embeddingModel: text("embedding_model"),
-
 		version: integer("version").notNull().default(1),
-		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-		updatedAt: timestamp("updated_at", { withTimezone: true })
-			.defaultNow()
+		createdAt: integer("created_at", { mode: "timestamp_ms" }).default(now).notNull(),
+		updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+			.default(now)
 			.$onUpdate(() => /* @__PURE__ */ new Date())
 			.notNull(),
-		deletedAt: timestamp("deleted_at", { withTimezone: true }),
+		deletedAt: integer("deleted_at", { mode: "timestamp_ms" }),
 	},
 	(table) => [
 		uniqueIndex("memory_user_path_idx").on(table.userId, table.path),
 		index("memory_user_category_idx").on(table.userId, table.categoryId),
-		uniqueIndex("memory_singleton_idx").on(table.userId, table.categoryId).where(sql`${table.isSingleton} = true`),
-		index("memory_embedding_idx").using("hnsw", table.embedding.op("vector_cosine_ops")),
+		uniqueIndex("memory_singleton_idx").on(table.userId, table.categoryId).where(sql`${table.isSingleton} = 1`),
 	],
 );
 

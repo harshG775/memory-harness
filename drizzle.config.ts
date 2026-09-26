@@ -3,14 +3,14 @@ import { defineConfig } from "drizzle-kit"
 
 config({ path: [".env", ".env.local"] })
 
-const DATABASE_URL = process.env.DATABASE_URL
-if (!DATABASE_URL) throw new Error(".env DATABASE_URL not found")
-
 export default defineConfig({
     out: "./src/lib/db/migrations",
     schema: "./src/lib/db/schema/index.ts",
-    dialect: "postgresql",
+    dialect: "sqlite",
+    driver: "d1-http",
     dbCredentials: {
-        url: DATABASE_URL,
+        accountId: process.env.CLOUDFLARE_ACCOUNT_ID!,
+        databaseId: process.env.CLOUDFLARE_DATABASE_ID!,
+        token: process.env.CLOUDFLARE_D1_TOKEN!,
     },
 })

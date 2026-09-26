@@ -1,7 +1,5 @@
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
-import { env } from "#/env";
+import { env } from "cloudflare:workers";
+import { drizzle } from "drizzle-orm/d1";
 import { relations } from "./relations";
 
-const sql = neon(env.DATABASE_URL);
-export const db = drizzle({ client: sql, relations: relations });
+export const db = drizzle(env.DB, { relations: relations });
