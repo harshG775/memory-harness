@@ -61,7 +61,7 @@ const memories = [
 		deletedAt: null,
 	},
 ];
-const memory = memories[2];
+const memory = memories[0];
 
 /** Splits the leading `---\n...\n---` frontmatter block from the body. */
 function splitFrontMatter(raw: string): { frontmatter: string; body: string } {
@@ -78,14 +78,14 @@ function RouteComponent() {
 	const [body, setBody] = useState(db);
 
 	return (
-		<div>
+		<>
 			<MemoryHeader
 				memory={memory}
 				isEditing={isEditing}
 				onToggleEditing={() => setIsEditing((value) => !value)}
 				onDelete={() => {}}
 			/>
-			<div className="max-w-4xl mx-auto p-4">
+			<div className="max-w-4xl w-full mx-auto p-4 overflow-auto">
 				{isEditing ? (
 					<div className="space-y-4">
 						<textarea
@@ -108,6 +108,6 @@ function RouteComponent() {
 					</div>
 				)}
 			</div>
-		</div>
+		</>
 	);
 }
