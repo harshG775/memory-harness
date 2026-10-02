@@ -1,5 +1,11 @@
 import { RiBookOpenLine, RiDeleteBinLine, RiMore2Fill, RiPencilLine } from "@remixicon/react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "#/components/ui/sheet";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "#/components/ui/dropdown-menu";
+import { DrawerDescription, DrawerHeader, DrawerTitle } from "#/components/ui/vaul-drawer";
 import { formatBytes, formatRelativeTime } from "#/lib/formatter";
 
 type MemoryHeaderProps = {
@@ -17,16 +23,16 @@ type MemoryHeaderProps = {
 export function MemoryHeader({ memory, isEditing, onToggleEditing, onDelete }: MemoryHeaderProps) {
 	const { path, version, sizeBytes, updatedAt } = memory;
 	return (
-		<header className="sticky top-0 bg-background shadow flex items-center justify-between px-5 py-2 text-foreground">
+		<DrawerHeader className="flex-row justify-between items-center">
 			<div>
-				<div className="truncate text-sm font-medium">{path || "Untitled"}</div>
-				<div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+				<DrawerTitle className="text-left">{path || "Untitled"}</DrawerTitle>
+				<DrawerDescription className="text-left">
 					<span>v{version}</span>
 					<span>&middot;</span>
 					<span>{formatBytes(sizeBytes)}</span>
 					<span>&middot;</span>
 					<span>Updated {formatRelativeTime(new Date(updatedAt))}</span>
-				</div>
+				</DrawerDescription>
 			</div>
 			<div className="flex items-center gap-1">
 				<button
@@ -37,8 +43,8 @@ export function MemoryHeader({ memory, isEditing, onToggleEditing, onDelete }: M
 					{isEditing ? <RiBookOpenLine className="size-4" /> : <RiPencilLine className="size-4" />}
 					<span className="sr-only">{isEditing ? "Editing" : "Reading"}</span>
 				</button>
-				<Sheet>
-					<SheetTrigger
+				<DropdownMenu>
+					<DropdownMenuTrigger
 						render={
 							<button
 								type="button"
@@ -49,21 +55,14 @@ export function MemoryHeader({ memory, isEditing, onToggleEditing, onDelete }: M
 							</button>
 						}
 					/>
-					<SheetContent side="top">
-						<SheetHeader>
-							<SheetTitle>{path || "Untitled"}</SheetTitle>
-						</SheetHeader>
-						<button
-							type="button"
-							onClick={onDelete}
-							className="mx-4 flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10"
-						>
+					<DropdownMenuContent align="end">
+						<DropdownMenuItem variant="destructive" onClick={onDelete}>
 							<RiDeleteBinLine className="size-4" />
 							Delete
-						</button>
-					</SheetContent>
-				</Sheet>
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
 			</div>
-		</header>
+		</DrawerHeader>
 	);
 }

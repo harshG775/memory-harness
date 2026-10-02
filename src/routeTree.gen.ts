@@ -16,6 +16,7 @@ import { Route as AuthedMemoriesRouteRouteImport } from './routes/_authed/memori
 import { Route as PublicConsentRouteImport } from './routes/_public/consent'
 import { Route as PublicSignInRouteImport } from './routes/_public/sign-in'
 import { Route as McpIndexRouteImport } from './routes/mcp/index'
+import { Route as TestMemoriesRouteRouteImport } from './routes/test/memories/route'
 import { Route as AuthedConnectionsIndexRouteImport } from './routes/_authed/connections/index'
 import { Route as AuthedMemoriesIndexRouteImport } from './routes/_authed/memories/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -58,6 +59,11 @@ const McpIndexRoute = McpIndexRouteImport.update({
   path: '/mcp/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TestMemoriesRouteRoute = TestMemoriesRouteRouteImport.update({
+  id: '/test/memories',
+  path: '/test/memories',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthedConnectionsIndexRoute = AuthedConnectionsIndexRouteImport.update({
   id: '/connections/',
   path: '/connections/',
@@ -79,9 +85,9 @@ const ApiLogosSlugRoute = ApiLogosSlugRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const TestMemoriesIdRoute = TestMemoriesIdRouteImport.update({
-  id: '/test/memories/$id',
-  path: '/test/memories/$id',
-  getParentRoute: () => rootRouteImport,
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => TestMemoriesRouteRoute,
 } as any)
 const AuthedMemoriesIdIndexRoute = AuthedMemoriesIdIndexRouteImport.update({
   id: '/$id/',
@@ -97,6 +103,7 @@ const AuthedMemoriesNewIndexRoute = AuthedMemoriesNewIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/memories': typeof AuthedMemoriesRouteRouteWithChildren
+  '/test/memories': typeof TestMemoriesRouteRouteWithChildren
   '/.well-known/$': typeof DotwellKnownSplatRoute
   '/consent': typeof PublicConsentRoute
   '/sign-in': typeof PublicSignInRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/test/memories': typeof TestMemoriesRouteRouteWithChildren
   '/.well-known/$': typeof DotwellKnownSplatRoute
   '/consent': typeof PublicConsentRoute
   '/sign-in': typeof PublicSignInRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteRouteWithChildren
   '/_authed/memories': typeof AuthedMemoriesRouteRouteWithChildren
+  '/test/memories': typeof TestMemoriesRouteRouteWithChildren
   '/.well-known/$': typeof DotwellKnownSplatRoute
   '/_public/consent': typeof PublicConsentRoute
   '/_public/sign-in': typeof PublicSignInRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/memories'
+    | '/test/memories'
     | '/.well-known/$'
     | '/consent'
     | '/sign-in'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/test/memories'
     | '/.well-known/$'
     | '/consent'
     | '/sign-in'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authed'
     | '/_authed/memories'
+    | '/test/memories'
     | '/.well-known/$'
     | '/_public/consent'
     | '/_public/sign-in'
@@ -191,13 +203,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
+  TestMemoriesRouteRoute: typeof TestMemoriesRouteRouteWithChildren
   DotwellKnownSplatRoute: typeof DotwellKnownSplatRoute
   PublicConsentRoute: typeof PublicConsentRoute
   PublicSignInRoute: typeof PublicSignInRoute
   McpIndexRoute: typeof McpIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiLogosSlugRoute: typeof ApiLogosSlugRoute
-  TestMemoriesIdRoute: typeof TestMemoriesIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -251,6 +263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof McpIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/test/memories': {
+      id: '/test/memories'
+      path: '/test/memories'
+      fullPath: '/test/memories'
+      preLoaderRoute: typeof TestMemoriesRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authed/connections/': {
       id: '/_authed/connections/'
       path: '/connections'
@@ -281,10 +300,10 @@ declare module '@tanstack/react-router' {
     }
     '/test/memories/$id': {
       id: '/test/memories/$id'
-      path: '/test/memories/$id'
+      path: '/$id'
       fullPath: '/test/memories/$id'
       preLoaderRoute: typeof TestMemoriesIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof TestMemoriesRouteRoute
     }
     '/_authed/memories/$id/': {
       id: '/_authed/memories/$id/'
@@ -332,16 +351,27 @@ const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
   AuthedRouteRouteChildren,
 )
 
+interface TestMemoriesRouteRouteChildren {
+  TestMemoriesIdRoute: typeof TestMemoriesIdRoute
+}
+
+const TestMemoriesRouteRouteChildren: TestMemoriesRouteRouteChildren = {
+  TestMemoriesIdRoute: TestMemoriesIdRoute,
+}
+
+const TestMemoriesRouteRouteWithChildren =
+  TestMemoriesRouteRoute._addFileChildren(TestMemoriesRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRouteRoute: AuthedRouteRouteWithChildren,
+  TestMemoriesRouteRoute: TestMemoriesRouteRouteWithChildren,
   DotwellKnownSplatRoute: DotwellKnownSplatRoute,
   PublicConsentRoute: PublicConsentRoute,
   PublicSignInRoute: PublicSignInRoute,
   McpIndexRoute: McpIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiLogosSlugRoute: ApiLogosSlugRoute,
-  TestMemoriesIdRoute: TestMemoriesIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

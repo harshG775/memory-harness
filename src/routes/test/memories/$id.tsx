@@ -85,7 +85,7 @@ function RouteComponent() {
 				onToggleEditing={() => setIsEditing((value) => !value)}
 				onDelete={() => {}}
 			/>
-			<div className="max-w-4xl w-full mx-auto p-4 overflow-auto">
+			<div className="max-w-4xl w-full mx-auto p-4 overflow-y-auto">
 				{isEditing ? (
 					<div className="space-y-4">
 						<textarea
