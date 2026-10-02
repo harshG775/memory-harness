@@ -1,15 +1,4 @@
-﻿import {
-	RiArrowLeftLine,
-	RiArrowRightLine,
-	RiCloseLine,
-	RiCollapseDiagonalLine,
-	RiDeleteBinLine,
-	RiExpandDiagonalLine,
-	RiFileTextLine,
-	RiListCheck2,
-	RiPencilLine,
-	RiPriceTag3Line,
-} from "@remixicon/react";
+﻿import { RiDeleteBinLine, RiFileTextLine, RiListCheck2, RiPencilLine, RiPriceTag3Line } from "@remixicon/react";
 import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -21,8 +10,6 @@ import { Label } from "#/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "#/components/ui/select";
 import { TagsInput } from "#/components/ui/tag-input";
 import { Textarea } from "#/components/ui/textarea";
-import { useWorkspace } from "#/components/workspace";
-import { useHistoryNavigation } from "#/hooks/use-history-navigation";
 import { formatBytes, formatRelativeTime } from "#/lib/formatter";
 import type { CategoryId } from "#/lib/memory/category";
 import { CATEGORY_ICONS, CATEGORY_LABELS } from "#/lib/memory/category";
@@ -56,23 +43,6 @@ function PropertyRow({ icon: Icon, label, required, children }: PropertyRowProps
 	);
 }
 
-function HistoryButtons() {
-	const { canGoBack, canGoForward, goBack, goForward } = useHistoryNavigation();
-
-	return (
-		<div className="flex items-center gap-1">
-			<Button variant="ghost" size="icon-sm" disabled={!canGoBack} onClick={goBack}>
-				<RiArrowLeftLine />
-				<span className="sr-only">Back</span>
-			</Button>
-			<Button variant="ghost" size="icon-sm" disabled={!canGoForward} onClick={goForward}>
-				<RiArrowRightLine />
-				<span className="sr-only">Forward</span>
-			</Button>
-		</div>
-	);
-}
-
 const ghostInputClassName =
 	"h-7 flex-1 rounded-md border-none bg-transparent px-1.5 shadow-none focus-visible:bg-background focus-visible:ring-1";
 const ghostTagsInputClassName =
@@ -102,7 +72,6 @@ function RouteComponent() {
 	const { data: memory } = useSuspenseQuery(memoryQueryOptions(id));
 	const navigate = useNavigate({ from: Route.fullPath });
 	const queryClient = useQueryClient();
-	const { isMobile, isMaximized, toggleMaximized, setMainOpen } = useWorkspace();
 
 	const [categoryId, setCategoryId] = useState<CreatableCategoryId>(
 		(memory?.categoryId as CreatableCategoryId | undefined) ?? creatableCategoryIdEnum[0],
@@ -172,30 +141,7 @@ function RouteComponent() {
 
 	return (
 		<>
-			{isMobile ? (
-				<div className="sticky top-0 right-0 pt-1.5 px-2 flex justify-between bg-popover">
-					<div className="flex items-center gap-1">
-						<Button variant="ghost" size="icon-sm" onClick={() => setMainOpen(false)}>
-							<RiCloseLine />
-							<span className="sr-only">Close</span>
-						</Button>
-						<HistoryButtons />
-					</div>
-					<div>{name}</div>
-					<div>
-						<Button variant="ghost" size="icon-sm" onClick={toggleMaximized}>
-							{isMaximized ? <RiCollapseDiagonalLine /> : <RiExpandDiagonalLine />}
-							<span className="sr-only">{isMaximized ? "Minimize" : "Maximize"}</span>
-						</Button>
-					</div>
-				</div>
-			) : (
-				<div className="sticky top-0 right-0 pt-1.5 px-2 flex justify-between bg-popover">
-					<HistoryButtons />
-					<div>{name}</div>
-					<div></div>
-				</div>
-			)}
+			<div></div>
 			<div className="mx-auto flex max-w-3xl flex-col gap-6 p-6 md:p-8 overflow-auto">
 				<form
 					onSubmit={handleSubmit}

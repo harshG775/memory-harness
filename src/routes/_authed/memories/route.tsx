@@ -39,7 +39,7 @@ function MemoriesSkeleton() {
 }
 function MemorySheetSkeleton() {
 	return (
-		<div className="space-y-3 p-4">
+		<div className="space-y-3 p-4 min-h-[80vh]">
 			<Skeleton className="h-6 w-1/3" />
 			<Skeleton className="h-4 w-full" />
 			<Skeleton className="h-4 w-5/6" />

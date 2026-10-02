@@ -1,22 +1,18 @@
 import { createContext, type ReactNode, useContext, useState } from "react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "#/components/ui/resizable";
-import { Sheet, SheetContent } from "#/components/ui/sheet";
+import { Drawer, DrawerContent } from "#/components/ui/vaul-drawer";
 import { useIsMobile } from "#/hooks/use-mobile";
-import { cn } from "#/lib/utils";
 
 const SIDEBAR_DEFAULT_WIDTH = 300;
 const SIDEBAR_MIN_WIDTH = 200;
 
 type WorkspaceContextProps = {
 	isMobile: boolean;
-	/** Mobile only: whether the bottom sheet showing the main content is open. */
 	isMainOpen: boolean;
 	setMainOpen: (open: boolean) => void;
-	/** Mobile only: whether the sheet fills the screen. */
 	isMaximized: boolean;
 	setMaximized: (maximized: boolean) => void;
 	toggleMaximized: () => void;
-	/** Mobile only: fires once the sheet has finished its open/close animation. */
 	onMainOpenChangeComplete?: (open: boolean) => void;
 };
 
@@ -33,7 +29,6 @@ export function useWorkspace() {
 
 type WorkspaceProviderProps = {
 	defaultMainOpen?: boolean;
-	/** Controlled open state; pass it together with `onMainOpenChange`. */
 	mainOpen?: boolean;
 	onMainOpenChange?: (open: boolean) => void;
 	onMainOpenChangeComplete?: (open: boolean) => void;
@@ -84,7 +79,6 @@ type WorkspaceProps = {
 	main: ReactNode;
 };
 
-/** Layout only; open/maximized state comes from the surrounding WorkspaceProvider. */
 export function Workspace({ primarySidebar, main }: WorkspaceProps) {
 	const { isMobile, isMainOpen, setMainOpen, isMaximized, onMainOpenChangeComplete } = useWorkspace();
 
@@ -105,26 +99,15 @@ export function Workspace({ primarySidebar, main }: WorkspaceProps) {
 			</ResizablePanel>
 
 			{isMobile ? (
-				<Sheet
+				<Drawer
 					open={isMainOpen}
-					modal={false}
+					// modal={false}
+					direction="bottom"
 					onOpenChange={setMainOpen}
-					onOpenChangeComplete={onMainOpenChangeComplete}
+					onAnimationEnd={onMainOpenChangeComplete}
 				>
-					<SheetContent
-						side="bottom"
-						showCloseButton={false}
-						overlayClassName="pointer-events-none bg-black opacity-10 supports-backdrop-filter:backdrop-blur-none"
-						className={cn(
-							"rounded-t-2xl transition-[height,opacity,translate] duration-200 shadow-2xl rounded-2xl overflow-hidden",
-							isMaximized
-								? "data-[side=bottom]:h-dvh data-[side=bottom]:rounded-t-none"
-								: "data-[side=bottom]:h-[70dvh]",
-						)}
-					>
-						{main}
-					</SheetContent>
-				</Sheet>
+					<DrawerContent>{main}</DrawerContent>
+				</Drawer>
 			) : (
 				<>
 					<ResizableHandle withHandle />
