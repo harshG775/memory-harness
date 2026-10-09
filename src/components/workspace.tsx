@@ -106,7 +106,9 @@ export function Workspace({ primarySidebar, main }: WorkspaceProps) {
 					onOpenChange={setMainOpen}
 					onAnimationEnd={onMainOpenChangeComplete}
 				>
-					<DrawerContent>{main}</DrawerContent>
+					<DrawerContent className="data-[vaul-drawer-direction=bottom]:max-h-screen data-[vaul-drawer-direction=top]:max-h-screen">
+						{main}
+					</DrawerContent>
 				</Drawer>
 			) : (
 				<>

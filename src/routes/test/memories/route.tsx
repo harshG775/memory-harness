@@ -13,7 +13,7 @@ function RouteComponent() {
 			{isMobile ? (
 				<>
 					<DrawerTrigger>item</DrawerTrigger>
-					<DrawerContent>
+					<DrawerContent className="data-[vaul-drawer-direction=bottom]:max-h-screen data-[vaul-drawer-direction=top]:max-h-screen">
 						<Outlet />
 					</DrawerContent>
 				</>
