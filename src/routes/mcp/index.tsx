@@ -42,6 +42,7 @@ function createMCPServer(userId: string): McpServer {
 		"memory_read",
 		{
 			title: "Read Memory",
+			annotations: { title: "Read Memory", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
 			description: "Fetch the full content of one memory entry by its exact path.",
 			inputSchema: {
 				path: z.string().describe("Path of the memory entry, e.g. you/preferences.md"),
@@ -54,6 +55,7 @@ function createMCPServer(userId: string): McpServer {
 		"memory_write",
 		{
 			title: "Write Memory",
+			annotations: { title: "Write Memory", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
 			description:
 				'Create a new memory entry or overwrite an existing one at a given path (upsert). Pass if_version: "new" to create, or the current version number to overwrite. There is no delete for retiring content — overwrite with a short pointer to its replacement instead.',
 			inputSchema: {
@@ -77,6 +79,7 @@ function createMCPServer(userId: string): McpServer {
 		"memory_append",
 		{
 			title: "Append to Memory",
+			annotations: { title: "Append to Memory", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
 			description: "Add a line to the end of an existing memory entry's content.",
 			inputSchema: {
 				path: z.string().describe("Path of the memory entry"),
@@ -95,6 +98,7 @@ function createMCPServer(userId: string): McpServer {
 		"memory_str_replace",
 		{
 			title: "Replace in Memory",
+			annotations: { title: "Replace in Memory", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
 			description: "Replace an exact, uniquely-occurring substring within an existing memory entry's content.",
 			inputSchema: {
 				path: z.string().describe("Path of the memory entry"),
@@ -114,6 +118,7 @@ function createMCPServer(userId: string): McpServer {
 		"memory_list",
 		{
 			title: "List Memories",
+			annotations: { title: "List Memories", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
 			description: "List memory entries (path, name, description), optionally filtered by category or path prefix.",
 			inputSchema: {
 				categoryId: z.enum(categoryIdEnum.enumValues).optional(),
@@ -130,6 +135,7 @@ function createMCPServer(userId: string): McpServer {
 		"memory_delete",
 		{
 			title: "Delete Memory",
+			annotations: { title: "Delete Memory", readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
 			description:
 				"Soft-delete a memory entry. Prefer memory_write to retire content by overwriting it with a pointer instead, unless the entry is simply wrong.",
 			inputSchema: {
@@ -148,6 +154,7 @@ function createMCPServer(userId: string): McpServer {
 		"memory_search",
 		{
 			title: "Search Memory",
+			annotations: { title: "Search Memory", readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
 			description: "Full-text search across memory entries' name, description, and content.",
 			inputSchema: {
 				query: z.string().min(1),
