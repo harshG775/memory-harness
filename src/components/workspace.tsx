@@ -10,9 +10,6 @@ type WorkspaceContextProps = {
 	isMobile: boolean;
 	isMainOpen: boolean;
 	setMainOpen: (open: boolean) => void;
-	isMaximized: boolean;
-	setMaximized: (maximized: boolean) => void;
-	toggleMaximized: () => void;
 	onMainOpenChangeComplete?: (open: boolean) => void;
 };
 
@@ -32,7 +29,6 @@ type WorkspaceProviderProps = {
 	mainOpen?: boolean;
 	onMainOpenChange?: (open: boolean) => void;
 	onMainOpenChangeComplete?: (open: boolean) => void;
-	defaultMaximized?: boolean;
 	children: ReactNode;
 };
 
@@ -41,7 +37,6 @@ export function WorkspaceProvider({
 	mainOpen: mainOpenProp,
 	onMainOpenChange,
 	onMainOpenChangeComplete,
-	defaultMaximized = true,
 	children,
 }: WorkspaceProviderProps) {
 	const isMobile = useIsMobile();
@@ -55,17 +50,12 @@ export function WorkspaceProvider({
 		onMainOpenChange?.(open);
 	}
 
-	const [isMaximized, setMaximized] = useState(defaultMaximized);
-
 	return (
 		<WorkspaceContext.Provider
 			value={{
 				isMobile,
 				isMainOpen,
 				setMainOpen,
-				isMaximized,
-				setMaximized,
-				toggleMaximized: () => setMaximized((value) => !value),
 				onMainOpenChangeComplete,
 			}}
 		>
@@ -80,7 +70,7 @@ type WorkspaceProps = {
 };
 
 export function Workspace({ primarySidebar, main }: WorkspaceProps) {
-	const { isMobile, isMainOpen, setMainOpen, isMaximized, onMainOpenChangeComplete } = useWorkspace();
+	const { isMobile, isMainOpen, setMainOpen, onMainOpenChangeComplete } = useWorkspace();
 
 	return (
 		<ResizablePanelGroup orientation="horizontal" className="fixed inset-0">
@@ -106,7 +96,9 @@ export function Workspace({ primarySidebar, main }: WorkspaceProps) {
 					onOpenChange={setMainOpen}
 					onAnimationEnd={onMainOpenChangeComplete}
 				>
-					<DrawerContent className="data-[vaul-drawer-direction=bottom]:max-h-screen data-[vaul-drawer-direction=top]:max-h-screen">
+					<DrawerContent 
+                    className="data-[vaul-drawer-direction=bottom]:max-h-[93vh] data-[vaul-drawer-direction=top]:max-h-[93vh]"
+                    >
 						{main}
 					</DrawerContent>
 				</Drawer>
