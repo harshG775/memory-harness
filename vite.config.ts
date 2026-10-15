@@ -4,7 +4,6 @@ import tailwindcss from "@tailwindcss/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
-
 import { defineConfig, lazyPlugins } from "vite-plus";
 
 const config = defineConfig({
@@ -14,6 +13,7 @@ const config = defineConfig({
     fmt: {
         tabWidth: 4,
         printWidth: 120,
+        sortImports: {},
     },
     lint: {
         jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
