@@ -14,6 +14,7 @@ const config = defineConfig({
         tabWidth: 4,
         printWidth: 120,
         sortImports: {},
+        ignorePatterns: ["src/routeTree.gen.ts"],
     },
     lint: {
         jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
