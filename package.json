@@ -85,6 +85,11 @@
             "name": "pnpm",
             "version": "12.4.1",
             "onFail": "download"
+        },
+        "runtime": {
+            "name": "node",
+            "version": "24.22.0",
+            "onFail": "download"
         }
     },
     "intent": {
