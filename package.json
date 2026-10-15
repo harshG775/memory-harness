@@ -14,14 +14,14 @@
         "generate-routes": "tsr generate",
         "build": "vp build",
         "preview": "vp preview",
+        "prepare": "vp config",
         "db:generate": "drizzle-kit generate",
         "db:migrate": "wrangler d1 migrations apply memory-harness --local",
         "db:migrate:remote": "wrangler d1 migrations apply memory-harness --remote",
         "db:push": "drizzle-kit push",
         "db:pull": "drizzle-kit pull",
         "db:studio": "drizzle-kit studio",
-        "deploy": "rm -rf dist && pnpm build && wrangler deploy",
-        "prepare": "vp config"
+        "deploy": "rm -rf dist && pnpm build && wrangler deploy"
     },
     "dependencies": {
         "@base-ui/react": "^1.8.0",
