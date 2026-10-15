@@ -33,6 +33,7 @@ const config = defineConfig(({ mode }) => ({
         babel({ presets: [reactCompilerPreset()] }),
     ]),
     server: {
+        port: 3000,
         allowedHosts: [".harshgaur.in"],
     },
 }));
