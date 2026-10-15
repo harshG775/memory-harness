@@ -19,15 +19,6 @@ const config = defineConfig({
         jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
         rules: {
             "vite-plus/prefer-vite-plus-imports": "error",
-            "no-unused-vars": [
-                "warn",
-                {
-                    argsIgnorePattern: "^_",
-                    varsIgnorePattern: "^_",
-                    caughtErrorsIgnorePattern: "^_",
-                    destructuredArrayIgnorePattern: "^_",
-                },
-            ],
         },
         options: { typeAware: true, typeCheck: true },
     },
