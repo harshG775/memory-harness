@@ -55,7 +55,7 @@ function RouteComponent() {
 
     useEffect(() => {
         if (!client_id) return;
-        authClient.oauth2.publicClient({ query: { client_id } }).then(({ data }) => {
+        void authClient.oauth2.publicClient({ query: { client_id } }).then(({ data }) => {
             setClient(data);
         });
     }, [client_id]);

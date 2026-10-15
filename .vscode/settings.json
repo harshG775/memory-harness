@@ -9,7 +9,6 @@
         "**/routeTree.gen.ts": true
     },
     "editor.codeActionsOnSave": {
-        "source.organizeImports": "explicit",
         "source.fixAll.oxc": "explicit"
     },
     "editor.defaultFormatter": "oxc.oxc-vscode",
