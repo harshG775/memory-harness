@@ -8,371 +8,368 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
-import { Route as DotwellKnownSplatRouteImport } from './routes/[.]well-known/$'
-import { Route as AuthedMemoriesRouteRouteImport } from './routes/_authed/memories/route'
-import { Route as PublicConsentRouteImport } from './routes/_public/consent'
-import { Route as PublicSignInRouteImport } from './routes/_public/sign-in'
-import { Route as McpIndexRouteImport } from './routes/mcp/index'
-import { Route as AuthedConnectionsIndexRouteImport } from './routes/_authed/connections/index'
-import { Route as AuthedMemoriesIndexRouteImport } from './routes/_authed/memories/index'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as ApiLogosSlugRouteImport } from './routes/api/logos/$slug'
-import { Route as TestMemoriesIndexRouteImport } from './routes/test/memories/index'
-import { Route as TestMemoriesIdRouteImport } from './routes/test/memories/$id'
-import { Route as AuthedMemoriesIdIndexRouteImport } from './routes/_authed/memories/$id/index'
-import { Route as AuthedMemoriesNewIndexRouteImport } from './routes/_authed/memories/new/index'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as IndexRouteImport } from "./routes/index";
+import { Route as AuthedRouteRouteImport } from "./routes/_authed/route";
+import { Route as DotwellKnownSplatRouteImport } from "./routes/[.]well-known/$";
+import { Route as AuthedMemoriesRouteRouteImport } from "./routes/_authed/memories/route";
+import { Route as PublicConsentRouteImport } from "./routes/_public/consent";
+import { Route as PublicSignInRouteImport } from "./routes/_public/sign-in";
+import { Route as McpIndexRouteImport } from "./routes/mcp/index";
+import { Route as AuthedConnectionsIndexRouteImport } from "./routes/_authed/connections/index";
+import { Route as AuthedMemoriesIndexRouteImport } from "./routes/_authed/memories/index";
+import { Route as ApiAuthSplatRouteImport } from "./routes/api/auth/$";
+import { Route as ApiLogosSlugRouteImport } from "./routes/api/logos/$slug";
+import { Route as TestMemoriesIndexRouteImport } from "./routes/test/memories/index";
+import { Route as TestMemoriesIdRouteImport } from "./routes/test/memories/$id";
+import { Route as AuthedMemoriesIdIndexRouteImport } from "./routes/_authed/memories/$id/index";
+import { Route as AuthedMemoriesNewIndexRouteImport } from "./routes/_authed/memories/new/index";
 
 const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/",
+    path: "/",
+    getParentRoute: () => rootRouteImport,
+} as any);
 const AuthedRouteRoute = AuthedRouteRouteImport.update({
-  id: '/_authed',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/_authed",
+    getParentRoute: () => rootRouteImport,
+} as any);
 const DotwellKnownSplatRoute = DotwellKnownSplatRouteImport.update({
-  id: '/.well-known/$',
-  path: '/.well-known/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/.well-known/$",
+    path: "/.well-known/$",
+    getParentRoute: () => rootRouteImport,
+} as any);
 const AuthedMemoriesRouteRoute = AuthedMemoriesRouteRouteImport.update({
-  id: '/memories',
-  path: '/memories',
-  getParentRoute: () => AuthedRouteRoute,
-} as any)
+    id: "/memories",
+    path: "/memories",
+    getParentRoute: () => AuthedRouteRoute,
+} as any);
 const PublicConsentRoute = PublicConsentRouteImport.update({
-  id: '/_public/consent',
-  path: '/consent',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/_public/consent",
+    path: "/consent",
+    getParentRoute: () => rootRouteImport,
+} as any);
 const PublicSignInRoute = PublicSignInRouteImport.update({
-  id: '/_public/sign-in',
-  path: '/sign-in',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/_public/sign-in",
+    path: "/sign-in",
+    getParentRoute: () => rootRouteImport,
+} as any);
 const McpIndexRoute = McpIndexRouteImport.update({
-  id: '/mcp/',
-  path: '/mcp/',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/mcp/",
+    path: "/mcp/",
+    getParentRoute: () => rootRouteImport,
+} as any);
 const AuthedConnectionsIndexRoute = AuthedConnectionsIndexRouteImport.update({
-  id: '/connections/',
-  path: '/connections/',
-  getParentRoute: () => AuthedRouteRoute,
-} as any)
+    id: "/connections/",
+    path: "/connections/",
+    getParentRoute: () => AuthedRouteRoute,
+} as any);
 const AuthedMemoriesIndexRoute = AuthedMemoriesIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthedMemoriesRouteRoute,
-} as any)
+    id: "/",
+    path: "/",
+    getParentRoute: () => AuthedMemoriesRouteRoute,
+} as any);
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/api/auth/$",
+    path: "/api/auth/$",
+    getParentRoute: () => rootRouteImport,
+} as any);
 const ApiLogosSlugRoute = ApiLogosSlugRouteImport.update({
-  id: '/api/logos/$slug',
-  path: '/api/logos/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/api/logos/$slug",
+    path: "/api/logos/$slug",
+    getParentRoute: () => rootRouteImport,
+} as any);
 const TestMemoriesIndexRoute = TestMemoriesIndexRouteImport.update({
-  id: '/test/memories/',
-  path: '/test/memories/',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/test/memories/",
+    path: "/test/memories/",
+    getParentRoute: () => rootRouteImport,
+} as any);
 const TestMemoriesIdRoute = TestMemoriesIdRouteImport.update({
-  id: '/test/memories/$id',
-  path: '/test/memories/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
+    id: "/test/memories/$id",
+    path: "/test/memories/$id",
+    getParentRoute: () => rootRouteImport,
+} as any);
 const AuthedMemoriesIdIndexRoute = AuthedMemoriesIdIndexRouteImport.update({
-  id: '/$id/',
-  path: '/$id/',
-  getParentRoute: () => AuthedMemoriesRouteRoute,
-} as any)
+    id: "/$id/",
+    path: "/$id/",
+    getParentRoute: () => AuthedMemoriesRouteRoute,
+} as any);
 const AuthedMemoriesNewIndexRoute = AuthedMemoriesNewIndexRouteImport.update({
-  id: '/new/',
-  path: '/new/',
-  getParentRoute: () => AuthedMemoriesRouteRoute,
-} as any)
+    id: "/new/",
+    path: "/new/",
+    getParentRoute: () => AuthedMemoriesRouteRoute,
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/memories': typeof AuthedMemoriesRouteRouteWithChildren
-  '/.well-known/$': typeof DotwellKnownSplatRoute
-  '/consent': typeof PublicConsentRoute
-  '/sign-in': typeof PublicSignInRoute
-  '/mcp/': typeof McpIndexRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/logos/$slug': typeof ApiLogosSlugRoute
-  '/test/memories/$id': typeof TestMemoriesIdRoute
-  '/connections/': typeof AuthedConnectionsIndexRoute
-  '/memories/': typeof AuthedMemoriesIndexRoute
-  '/test/memories/': typeof TestMemoriesIndexRoute
-  '/memories/$id/': typeof AuthedMemoriesIdIndexRoute
-  '/memories/new/': typeof AuthedMemoriesNewIndexRoute
+    "/": typeof IndexRoute;
+    "/memories": typeof AuthedMemoriesRouteRouteWithChildren;
+    "/.well-known/$": typeof DotwellKnownSplatRoute;
+    "/consent": typeof PublicConsentRoute;
+    "/sign-in": typeof PublicSignInRoute;
+    "/mcp/": typeof McpIndexRoute;
+    "/api/auth/$": typeof ApiAuthSplatRoute;
+    "/api/logos/$slug": typeof ApiLogosSlugRoute;
+    "/test/memories/$id": typeof TestMemoriesIdRoute;
+    "/connections/": typeof AuthedConnectionsIndexRoute;
+    "/memories/": typeof AuthedMemoriesIndexRoute;
+    "/test/memories/": typeof TestMemoriesIndexRoute;
+    "/memories/$id/": typeof AuthedMemoriesIdIndexRoute;
+    "/memories/new/": typeof AuthedMemoriesNewIndexRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/.well-known/$': typeof DotwellKnownSplatRoute
-  '/consent': typeof PublicConsentRoute
-  '/sign-in': typeof PublicSignInRoute
-  '/mcp': typeof McpIndexRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/logos/$slug': typeof ApiLogosSlugRoute
-  '/test/memories/$id': typeof TestMemoriesIdRoute
-  '/connections': typeof AuthedConnectionsIndexRoute
-  '/memories': typeof AuthedMemoriesIndexRoute
-  '/test/memories': typeof TestMemoriesIndexRoute
-  '/memories/$id': typeof AuthedMemoriesIdIndexRoute
-  '/memories/new': typeof AuthedMemoriesNewIndexRoute
+    "/": typeof IndexRoute;
+    "/.well-known/$": typeof DotwellKnownSplatRoute;
+    "/consent": typeof PublicConsentRoute;
+    "/sign-in": typeof PublicSignInRoute;
+    "/mcp": typeof McpIndexRoute;
+    "/api/auth/$": typeof ApiAuthSplatRoute;
+    "/api/logos/$slug": typeof ApiLogosSlugRoute;
+    "/test/memories/$id": typeof TestMemoriesIdRoute;
+    "/connections": typeof AuthedConnectionsIndexRoute;
+    "/memories": typeof AuthedMemoriesIndexRoute;
+    "/test/memories": typeof TestMemoriesIndexRoute;
+    "/memories/$id": typeof AuthedMemoriesIdIndexRoute;
+    "/memories/new": typeof AuthedMemoriesNewIndexRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/_authed': typeof AuthedRouteRouteWithChildren
-  '/_authed/memories': typeof AuthedMemoriesRouteRouteWithChildren
-  '/.well-known/$': typeof DotwellKnownSplatRoute
-  '/_public/consent': typeof PublicConsentRoute
-  '/_public/sign-in': typeof PublicSignInRoute
-  '/mcp/': typeof McpIndexRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
-  '/api/logos/$slug': typeof ApiLogosSlugRoute
-  '/test/memories/$id': typeof TestMemoriesIdRoute
-  '/_authed/connections/': typeof AuthedConnectionsIndexRoute
-  '/_authed/memories/': typeof AuthedMemoriesIndexRoute
-  '/test/memories/': typeof TestMemoriesIndexRoute
-  '/_authed/memories/$id/': typeof AuthedMemoriesIdIndexRoute
-  '/_authed/memories/new/': typeof AuthedMemoriesNewIndexRoute
+    __root__: typeof rootRouteImport;
+    "/": typeof IndexRoute;
+    "/_authed": typeof AuthedRouteRouteWithChildren;
+    "/_authed/memories": typeof AuthedMemoriesRouteRouteWithChildren;
+    "/.well-known/$": typeof DotwellKnownSplatRoute;
+    "/_public/consent": typeof PublicConsentRoute;
+    "/_public/sign-in": typeof PublicSignInRoute;
+    "/mcp/": typeof McpIndexRoute;
+    "/api/auth/$": typeof ApiAuthSplatRoute;
+    "/api/logos/$slug": typeof ApiLogosSlugRoute;
+    "/test/memories/$id": typeof TestMemoriesIdRoute;
+    "/_authed/connections/": typeof AuthedConnectionsIndexRoute;
+    "/_authed/memories/": typeof AuthedMemoriesIndexRoute;
+    "/test/memories/": typeof TestMemoriesIndexRoute;
+    "/_authed/memories/$id/": typeof AuthedMemoriesIdIndexRoute;
+    "/_authed/memories/new/": typeof AuthedMemoriesNewIndexRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/memories'
-    | '/.well-known/$'
-    | '/consent'
-    | '/sign-in'
-    | '/mcp/'
-    | '/api/auth/$'
-    | '/api/logos/$slug'
-    | '/test/memories/$id'
-    | '/connections/'
-    | '/memories/'
-    | '/test/memories/'
-    | '/memories/$id/'
-    | '/memories/new/'
-  fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/.well-known/$'
-    | '/consent'
-    | '/sign-in'
-    | '/mcp'
-    | '/api/auth/$'
-    | '/api/logos/$slug'
-    | '/test/memories/$id'
-    | '/connections'
-    | '/memories'
-    | '/test/memories'
-    | '/memories/$id'
-    | '/memories/new'
-  id:
-    | '__root__'
-    | '/'
-    | '/_authed'
-    | '/_authed/memories'
-    | '/.well-known/$'
-    | '/_public/consent'
-    | '/_public/sign-in'
-    | '/mcp/'
-    | '/api/auth/$'
-    | '/api/logos/$slug'
-    | '/test/memories/$id'
-    | '/_authed/connections/'
-    | '/_authed/memories/'
-    | '/test/memories/'
-    | '/_authed/memories/$id/'
-    | '/_authed/memories/new/'
-  fileRoutesById: FileRoutesById
+    fileRoutesByFullPath: FileRoutesByFullPath;
+    fullPaths:
+        | "/"
+        | "/memories"
+        | "/.well-known/$"
+        | "/consent"
+        | "/sign-in"
+        | "/mcp/"
+        | "/api/auth/$"
+        | "/api/logos/$slug"
+        | "/test/memories/$id"
+        | "/connections/"
+        | "/memories/"
+        | "/test/memories/"
+        | "/memories/$id/"
+        | "/memories/new/";
+    fileRoutesByTo: FileRoutesByTo;
+    to:
+        | "/"
+        | "/.well-known/$"
+        | "/consent"
+        | "/sign-in"
+        | "/mcp"
+        | "/api/auth/$"
+        | "/api/logos/$slug"
+        | "/test/memories/$id"
+        | "/connections"
+        | "/memories"
+        | "/test/memories"
+        | "/memories/$id"
+        | "/memories/new";
+    id:
+        | "__root__"
+        | "/"
+        | "/_authed"
+        | "/_authed/memories"
+        | "/.well-known/$"
+        | "/_public/consent"
+        | "/_public/sign-in"
+        | "/mcp/"
+        | "/api/auth/$"
+        | "/api/logos/$slug"
+        | "/test/memories/$id"
+        | "/_authed/connections/"
+        | "/_authed/memories/"
+        | "/test/memories/"
+        | "/_authed/memories/$id/"
+        | "/_authed/memories/new/";
+    fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
-  DotwellKnownSplatRoute: typeof DotwellKnownSplatRoute
-  PublicConsentRoute: typeof PublicConsentRoute
-  PublicSignInRoute: typeof PublicSignInRoute
-  McpIndexRoute: typeof McpIndexRoute
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
-  ApiLogosSlugRoute: typeof ApiLogosSlugRoute
-  TestMemoriesIdRoute: typeof TestMemoriesIdRoute
-  TestMemoriesIndexRoute: typeof TestMemoriesIndexRoute
+    IndexRoute: typeof IndexRoute;
+    AuthedRouteRoute: typeof AuthedRouteRouteWithChildren;
+    DotwellKnownSplatRoute: typeof DotwellKnownSplatRoute;
+    PublicConsentRoute: typeof PublicConsentRoute;
+    PublicSignInRoute: typeof PublicSignInRoute;
+    McpIndexRoute: typeof McpIndexRoute;
+    ApiAuthSplatRoute: typeof ApiAuthSplatRoute;
+    ApiLogosSlugRoute: typeof ApiLogosSlugRoute;
+    TestMemoriesIdRoute: typeof TestMemoriesIdRoute;
+    TestMemoriesIndexRoute: typeof TestMemoriesIndexRoute;
 }
 
-declare module '@tanstack/react-router' {
-  interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+declare module "@tanstack/react-router" {
+    interface FileRoutesByPath {
+        "/": {
+            id: "/";
+            path: "/";
+            fullPath: "/";
+            preLoaderRoute: typeof IndexRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
+        "/_authed": {
+            id: "/_authed";
+            path: "";
+            fullPath: "/";
+            preLoaderRoute: typeof AuthedRouteRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
+        "/.well-known/$": {
+            id: "/.well-known/$";
+            path: "/.well-known/$";
+            fullPath: "/.well-known/$";
+            preLoaderRoute: typeof DotwellKnownSplatRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
+        "/_authed/memories": {
+            id: "/_authed/memories";
+            path: "/memories";
+            fullPath: "/memories";
+            preLoaderRoute: typeof AuthedMemoriesRouteRouteImport;
+            parentRoute: typeof AuthedRouteRoute;
+        };
+        "/_public/consent": {
+            id: "/_public/consent";
+            path: "/consent";
+            fullPath: "/consent";
+            preLoaderRoute: typeof PublicConsentRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
+        "/_public/sign-in": {
+            id: "/_public/sign-in";
+            path: "/sign-in";
+            fullPath: "/sign-in";
+            preLoaderRoute: typeof PublicSignInRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
+        "/mcp/": {
+            id: "/mcp/";
+            path: "/mcp";
+            fullPath: "/mcp/";
+            preLoaderRoute: typeof McpIndexRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
+        "/_authed/connections/": {
+            id: "/_authed/connections/";
+            path: "/connections";
+            fullPath: "/connections/";
+            preLoaderRoute: typeof AuthedConnectionsIndexRouteImport;
+            parentRoute: typeof AuthedRouteRoute;
+        };
+        "/_authed/memories/": {
+            id: "/_authed/memories/";
+            path: "/";
+            fullPath: "/memories/";
+            preLoaderRoute: typeof AuthedMemoriesIndexRouteImport;
+            parentRoute: typeof AuthedMemoriesRouteRoute;
+        };
+        "/api/auth/$": {
+            id: "/api/auth/$";
+            path: "/api/auth/$";
+            fullPath: "/api/auth/$";
+            preLoaderRoute: typeof ApiAuthSplatRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
+        "/api/logos/$slug": {
+            id: "/api/logos/$slug";
+            path: "/api/logos/$slug";
+            fullPath: "/api/logos/$slug";
+            preLoaderRoute: typeof ApiLogosSlugRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
+        "/test/memories/": {
+            id: "/test/memories/";
+            path: "/test/memories";
+            fullPath: "/test/memories/";
+            preLoaderRoute: typeof TestMemoriesIndexRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
+        "/test/memories/$id": {
+            id: "/test/memories/$id";
+            path: "/test/memories/$id";
+            fullPath: "/test/memories/$id";
+            preLoaderRoute: typeof TestMemoriesIdRouteImport;
+            parentRoute: typeof rootRouteImport;
+        };
+        "/_authed/memories/$id/": {
+            id: "/_authed/memories/$id/";
+            path: "/$id";
+            fullPath: "/memories/$id/";
+            preLoaderRoute: typeof AuthedMemoriesIdIndexRouteImport;
+            parentRoute: typeof AuthedMemoriesRouteRoute;
+        };
+        "/_authed/memories/new/": {
+            id: "/_authed/memories/new/";
+            path: "/new";
+            fullPath: "/memories/new/";
+            preLoaderRoute: typeof AuthedMemoriesNewIndexRouteImport;
+            parentRoute: typeof AuthedMemoriesRouteRoute;
+        };
     }
-    '/_authed': {
-      id: '/_authed'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.well-known/$': {
-      id: '/.well-known/$'
-      path: '/.well-known/$'
-      fullPath: '/.well-known/$'
-      preLoaderRoute: typeof DotwellKnownSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authed/memories': {
-      id: '/_authed/memories'
-      path: '/memories'
-      fullPath: '/memories'
-      preLoaderRoute: typeof AuthedMemoriesRouteRouteImport
-      parentRoute: typeof AuthedRouteRoute
-    }
-    '/_public/consent': {
-      id: '/_public/consent'
-      path: '/consent'
-      fullPath: '/consent'
-      preLoaderRoute: typeof PublicConsentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_public/sign-in': {
-      id: '/_public/sign-in'
-      path: '/sign-in'
-      fullPath: '/sign-in'
-      preLoaderRoute: typeof PublicSignInRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mcp/': {
-      id: '/mcp/'
-      path: '/mcp'
-      fullPath: '/mcp/'
-      preLoaderRoute: typeof McpIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authed/connections/': {
-      id: '/_authed/connections/'
-      path: '/connections'
-      fullPath: '/connections/'
-      preLoaderRoute: typeof AuthedConnectionsIndexRouteImport
-      parentRoute: typeof AuthedRouteRoute
-    }
-    '/_authed/memories/': {
-      id: '/_authed/memories/'
-      path: '/'
-      fullPath: '/memories/'
-      preLoaderRoute: typeof AuthedMemoriesIndexRouteImport
-      parentRoute: typeof AuthedMemoriesRouteRoute
-    }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/logos/$slug': {
-      id: '/api/logos/$slug'
-      path: '/api/logos/$slug'
-      fullPath: '/api/logos/$slug'
-      preLoaderRoute: typeof ApiLogosSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/test/memories/': {
-      id: '/test/memories/'
-      path: '/test/memories'
-      fullPath: '/test/memories/'
-      preLoaderRoute: typeof TestMemoriesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/test/memories/$id': {
-      id: '/test/memories/$id'
-      path: '/test/memories/$id'
-      fullPath: '/test/memories/$id'
-      preLoaderRoute: typeof TestMemoriesIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authed/memories/$id/': {
-      id: '/_authed/memories/$id/'
-      path: '/$id'
-      fullPath: '/memories/$id/'
-      preLoaderRoute: typeof AuthedMemoriesIdIndexRouteImport
-      parentRoute: typeof AuthedMemoriesRouteRoute
-    }
-    '/_authed/memories/new/': {
-      id: '/_authed/memories/new/'
-      path: '/new'
-      fullPath: '/memories/new/'
-      preLoaderRoute: typeof AuthedMemoriesNewIndexRouteImport
-      parentRoute: typeof AuthedMemoriesRouteRoute
-    }
-  }
 }
 
 interface AuthedMemoriesRouteRouteChildren {
-  AuthedMemoriesIndexRoute: typeof AuthedMemoriesIndexRoute
-  AuthedMemoriesIdIndexRoute: typeof AuthedMemoriesIdIndexRoute
-  AuthedMemoriesNewIndexRoute: typeof AuthedMemoriesNewIndexRoute
+    AuthedMemoriesIndexRoute: typeof AuthedMemoriesIndexRoute;
+    AuthedMemoriesIdIndexRoute: typeof AuthedMemoriesIdIndexRoute;
+    AuthedMemoriesNewIndexRoute: typeof AuthedMemoriesNewIndexRoute;
 }
 
 const AuthedMemoriesRouteRouteChildren: AuthedMemoriesRouteRouteChildren = {
-  AuthedMemoriesIndexRoute: AuthedMemoriesIndexRoute,
-  AuthedMemoriesIdIndexRoute: AuthedMemoriesIdIndexRoute,
-  AuthedMemoriesNewIndexRoute: AuthedMemoriesNewIndexRoute,
-}
+    AuthedMemoriesIndexRoute: AuthedMemoriesIndexRoute,
+    AuthedMemoriesIdIndexRoute: AuthedMemoriesIdIndexRoute,
+    AuthedMemoriesNewIndexRoute: AuthedMemoriesNewIndexRoute,
+};
 
-const AuthedMemoriesRouteRouteWithChildren =
-  AuthedMemoriesRouteRoute._addFileChildren(AuthedMemoriesRouteRouteChildren)
+const AuthedMemoriesRouteRouteWithChildren = AuthedMemoriesRouteRoute._addFileChildren(
+    AuthedMemoriesRouteRouteChildren,
+);
 
 interface AuthedRouteRouteChildren {
-  AuthedMemoriesRouteRoute: typeof AuthedMemoriesRouteRouteWithChildren
-  AuthedConnectionsIndexRoute: typeof AuthedConnectionsIndexRoute
+    AuthedMemoriesRouteRoute: typeof AuthedMemoriesRouteRouteWithChildren;
+    AuthedConnectionsIndexRoute: typeof AuthedConnectionsIndexRoute;
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
-  AuthedMemoriesRouteRoute: AuthedMemoriesRouteRouteWithChildren,
-  AuthedConnectionsIndexRoute: AuthedConnectionsIndexRoute,
-}
+    AuthedMemoriesRouteRoute: AuthedMemoriesRouteRouteWithChildren,
+    AuthedConnectionsIndexRoute: AuthedConnectionsIndexRoute,
+};
 
-const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
-  AuthedRouteRouteChildren,
-)
+const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(AuthedRouteRouteChildren);
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AuthedRouteRoute: AuthedRouteRouteWithChildren,
-  DotwellKnownSplatRoute: DotwellKnownSplatRoute,
-  PublicConsentRoute: PublicConsentRoute,
-  PublicSignInRoute: PublicSignInRoute,
-  McpIndexRoute: McpIndexRoute,
-  ApiAuthSplatRoute: ApiAuthSplatRoute,
-  ApiLogosSlugRoute: ApiLogosSlugRoute,
-  TestMemoriesIdRoute: TestMemoriesIdRoute,
-  TestMemoriesIndexRoute: TestMemoriesIndexRoute,
-}
-export const routeTree = rootRouteImport
-  ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+    IndexRoute: IndexRoute,
+    AuthedRouteRoute: AuthedRouteRouteWithChildren,
+    DotwellKnownSplatRoute: DotwellKnownSplatRoute,
+    PublicConsentRoute: PublicConsentRoute,
+    PublicSignInRoute: PublicSignInRoute,
+    McpIndexRoute: McpIndexRoute,
+    ApiAuthSplatRoute: ApiAuthSplatRoute,
+    ApiLogosSlugRoute: ApiLogosSlugRoute,
+    TestMemoriesIdRoute: TestMemoriesIdRoute,
+    TestMemoriesIndexRoute: TestMemoriesIndexRoute,
+};
+export const routeTree = rootRouteImport._addFileChildren(rootRouteChildren)._addFileTypes<FileRouteTypes>();
 
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
+import type { getRouter } from "./router.tsx";
+import type { createStart } from "@tanstack/react-start";
+declare module "@tanstack/react-start" {
+    interface Register {
+        ssr: true;
+        router: Awaited<ReturnType<typeof getRouter>>;
+    }
 }

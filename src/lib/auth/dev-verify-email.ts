@@ -9,10 +9,10 @@ import { user } from "#/lib/db/schema/index";
  * Remove this once a real email provider sends the OTP.
  */
 export const devVerifyEmail = createServerFn({ method: "POST" })
-	.validator((data: { email: string }) => data)
-	.handler(async ({ data }) => {
-		if (!import.meta.env.DEV) {
-			throw new Error("devVerifyEmail is only available in development");
-		}
-		await db.update(user).set({ emailVerified: true }).where(eq(user.email, data.email));
-	});
+    .validator((data: { email: string }) => data)
+    .handler(async ({ data }) => {
+        if (!import.meta.env.DEV) {
+            throw new Error("devVerifyEmail is only available in development");
+        }
+        await db.update(user).set({ emailVerified: true }).where(eq(user.email, data.email));
+    });

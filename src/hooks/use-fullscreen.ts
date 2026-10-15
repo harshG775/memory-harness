@@ -12,37 +12,37 @@ import { type RefObject, useCallback, useEffect, useState } from "react";
  * reject if the browser refuses.
  */
 export function useFullscreen<T extends HTMLElement = HTMLElement>(target?: RefObject<T | null>) {
-	const [isFullscreen, setIsFullscreen] = useState(false);
-	const [isSupported, setIsSupported] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isSupported, setIsSupported] = useState(false);
 
-	const getTarget = useCallback(() => target?.current ?? document.documentElement, [target]);
+    const getTarget = useCallback(() => target?.current ?? document.documentElement, [target]);
 
-	useEffect(() => {
-		setIsSupported(document.fullscreenEnabled);
+    useEffect(() => {
+        setIsSupported(document.fullscreenEnabled);
 
-		const sync = () => setIsFullscreen(document.fullscreenElement === getTarget());
-		document.addEventListener("fullscreenchange", sync);
-		sync();
-		return () => document.removeEventListener("fullscreenchange", sync);
-	}, [getTarget]);
+        const sync = () => setIsFullscreen(document.fullscreenElement === getTarget());
+        document.addEventListener("fullscreenchange", sync);
+        sync();
+        return () => document.removeEventListener("fullscreenchange", sync);
+    }, [getTarget]);
 
-	const enter = useCallback(async () => {
-		await getTarget().requestFullscreen();
-	}, [getTarget]);
+    const enter = useCallback(async () => {
+        await getTarget().requestFullscreen();
+    }, [getTarget]);
 
-	const exit = useCallback(async () => {
-		if (document.fullscreenElement === getTarget()) {
-			await document.exitFullscreen();
-		}
-	}, [getTarget]);
+    const exit = useCallback(async () => {
+        if (document.fullscreenElement === getTarget()) {
+            await document.exitFullscreen();
+        }
+    }, [getTarget]);
 
-	const toggle = useCallback(async () => {
-		if (document.fullscreenElement === getTarget()) {
-			await document.exitFullscreen();
-		} else {
-			await getTarget().requestFullscreen();
-		}
-	}, [getTarget]);
+    const toggle = useCallback(async () => {
+        if (document.fullscreenElement === getTarget()) {
+            await document.exitFullscreen();
+        } else {
+            await getTarget().requestFullscreen();
+        }
+    }, [getTarget]);
 
-	return { isFullscreen, isSupported, enter, exit, toggle };
+    return { isFullscreen, isSupported, enter, exit, toggle };
 }

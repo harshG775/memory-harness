@@ -5,8 +5,8 @@ import { sqliteTable, text } from "drizzle-orm/sqlite-core";
  * migration — deliberately outside `schema/` so drizzle-kit doesn't try to manage it as a real table.
  */
 export const memoryFts = sqliteTable("memory_fts", {
-	memoryId: text("memory_id").notNull(),
-	name: text("name"),
-	description: text("description"),
-	content: text("content"),
+    memoryId: text("memory_id").notNull(),
+    name: text("name"),
+    description: text("description"),
+    content: text("content"),
 });

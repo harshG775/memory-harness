@@ -1,7 +1,7 @@
-import { config } from "dotenv"
-import { defineConfig } from "drizzle-kit"
+import { config } from "dotenv";
+import { defineConfig } from "drizzle-kit";
 
-config({ path: [".env", ".env.local"] })
+config({ path: [".env", ".env.local"] });
 
 export default defineConfig({
     out: "./src/lib/db/migrations",
@@ -13,4 +13,4 @@ export default defineConfig({
         databaseId: process.env.CLOUDFLARE_DATABASE_ID!,
         token: process.env.CLOUDFLARE_D1_TOKEN!,
     },
-})
+});

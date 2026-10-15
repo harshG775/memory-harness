@@ -5,21 +5,33 @@ import { devtools } from "@tanstack/devtools-vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
 
-import { defineConfig } from "vite";
+import { defineConfig, lazyPlugins } from "vite-plus";
 
 const config = defineConfig({
-	resolve: { tsconfigPaths: true },
-	plugins: [
-		devtools(),
-		cloudflare({ viteEnvironment: { name: "ssr" } }),
-		tailwindcss(),
-		tanstackStart(),
-		viteReact(),
-		babel({ presets: [reactCompilerPreset()] }),
-	],
-	server: {
-		allowedHosts: ["memory-harness.harshgaur.in"],
-	},
+    staged: {
+        "*": "vp check --fix",
+    },
+    fmt: {
+        tabWidth: 4,
+        printWidth: 120,
+    },
+    lint: {
+        jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
+        rules: { "vite-plus/prefer-vite-plus-imports": "error" },
+        options: { typeAware: true, typeCheck: true },
+    },
+    resolve: { tsconfigPaths: true },
+    plugins: lazyPlugins(() => [
+        devtools(),
+        cloudflare({ viteEnvironment: { name: "ssr" } }),
+        tailwindcss(),
+        tanstackStart(),
+        viteReact(),
+        babel({ presets: [reactCompilerPreset()] }),
+    ]),
+    server: {
+        allowedHosts: [".harshgaur.in"],
+    },
 });
 
 export default config;

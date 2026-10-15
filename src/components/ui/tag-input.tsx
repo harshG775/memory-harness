@@ -1,16 +1,16 @@
-import * as React from "react"
-import { RiCloseLine } from "@remixicon/react"
-import { cn } from "cn"
-import { Badge } from "#/components/ui/badge"
+import * as React from "react";
+import { RiCloseLine } from "@remixicon/react";
+import { cn } from "cn";
+import { Badge } from "#/components/ui/badge";
 
 type TagsInputProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "type"> & {
-    value?: string[]
-    defaultValue?: string[]
-    onValueChange?: (value: string[]) => void
-    maxTags?: number
-    allowDuplicates?: boolean
-    delimiters?: string[]
-}
+    value?: string[];
+    defaultValue?: string[];
+    onValueChange?: (value: string[]) => void;
+    maxTags?: number;
+    allowDuplicates?: boolean;
+    delimiters?: string[];
+};
 
 function TagsInput({
     value,
@@ -26,74 +26,74 @@ function TagsInput({
     ref,
     ...props
 }: TagsInputProps & { ref?: React.Ref<HTMLInputElement> }) {
-    const isControlled = value !== undefined
-    const [internalTags, setInternalTags] = React.useState<string[]>(defaultValue)
-    const tags = isControlled ? value : internalTags
-    const [draft, setDraft] = React.useState("")
-    const inputRef = React.useRef<HTMLInputElement>(null)
-    React.useImperativeHandle(ref, () => inputRef.current as HTMLInputElement)
+    const isControlled = value !== undefined;
+    const [internalTags, setInternalTags] = React.useState<string[]>(defaultValue);
+    const tags = isControlled ? value : internalTags;
+    const [draft, setDraft] = React.useState("");
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    React.useImperativeHandle(ref, () => inputRef.current as HTMLInputElement);
 
-    const atMax = typeof maxTags === "number" && tags.length >= maxTags
+    const atMax = typeof maxTags === "number" && tags.length >= maxTags;
 
     const setTags = (next: string[]) => {
-        if (!isControlled) setInternalTags(next)
-        onValueChange?.(next)
-    }
+        if (!isControlled) setInternalTags(next);
+        onValueChange?.(next);
+    };
 
     const commitTag = (raw: string) => {
-        const tag = raw.trim()
-        if (!tag || atMax) return
+        const tag = raw.trim();
+        if (!tag || atMax) return;
         if (!allowDuplicates && tags.includes(tag)) {
-            setDraft("")
-            return
+            setDraft("");
+            return;
         }
-        setTags([...tags, tag])
-        setDraft("")
-    }
+        setTags([...tags, tag]);
+        setDraft("");
+    };
 
     const removeTag = (index: number) => {
-        if (disabled) return
-        setTags(tags.filter((_, i) => i !== index))
-    }
+        if (disabled) return;
+        setTags(tags.filter((_, i) => i !== index));
+    };
 
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (delimiters.includes(event.key)) {
             if (draft.trim()) {
-                event.preventDefault()
-                commitTag(draft)
+                event.preventDefault();
+                commitTag(draft);
             }
-            return
+            return;
         }
 
         if (event.key === "Backspace" && draft === "" && tags.length > 0) {
-            event.preventDefault()
-            removeTag(tags.length - 1)
+            event.preventDefault();
+            removeTag(tags.length - 1);
         }
-    }
+    };
 
     const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
-        const text = event.clipboardData.getData("text")
-        if (!text.includes(",") && !text.includes("\n")) return
-        event.preventDefault()
+        const text = event.clipboardData.getData("text");
+        if (!text.includes(",") && !text.includes("\n")) return;
+        event.preventDefault();
 
         const parts = text
             .split(/[,\n]/)
             .map((part) => part.trim())
-            .filter(Boolean)
+            .filter(Boolean);
 
-        let next = tags
+        let next = tags;
         for (const part of parts) {
-            if (typeof maxTags === "number" && next.length >= maxTags) break
-            if (!allowDuplicates && next.includes(part)) continue
-            next = [...next, part]
+            if (typeof maxTags === "number" && next.length >= maxTags) break;
+            if (!allowDuplicates && next.includes(part)) continue;
+            next = [...next, part];
         }
-        setTags(next)
-        setDraft("")
-    }
+        setTags(next);
+        setDraft("");
+    };
 
     const handleBlur = () => {
-        if (draft.trim()) commitTag(draft)
-    }
+        if (draft.trim()) commitTag(draft);
+    };
 
     return (
         <div
@@ -113,8 +113,8 @@ function TagsInput({
                             type="button"
                             aria-label={`Remove ${tag}`}
                             onClick={(event) => {
-                                event.stopPropagation()
-                                removeTag(index)
+                                event.stopPropagation();
+                                removeTag(index);
                             }}
                             className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
                         >
@@ -138,7 +138,7 @@ function TagsInput({
                 {...props}
             />
         </div>
-    )
+    );
 }
 
-export { TagsInput }
+export { TagsInput };

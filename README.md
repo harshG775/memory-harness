@@ -14,15 +14,15 @@ Live at `https://memory-harness.hgaur491.workers.dev`. The MCP endpoint is `/mcp
 
 Every tool is scoped to the authenticated user.
 
-| Tool | Purpose |
-| --- | --- |
-| `memory_read` | Fetch one entry by path |
-| `memory_write` | Create (`if_version: "new"`) or overwrite (`if_version: <n>`) an entry |
-| `memory_append` | Append text to an entry |
-| `memory_str_replace` | Replace a substring that occurs exactly once |
-| `memory_list` | List entries, filterable by category / path prefix, cursor-paginated |
-| `memory_search` | Full-text search over name, description and content |
-| `memory_delete` | Soft delete |
+| Tool                 | Purpose                                                                |
+| -------------------- | ---------------------------------------------------------------------- |
+| `memory_read`        | Fetch one entry by path                                                |
+| `memory_write`       | Create (`if_version: "new"`) or overwrite (`if_version: <n>`) an entry |
+| `memory_append`      | Append text to an entry                                                |
+| `memory_str_replace` | Replace a substring that occurs exactly once                           |
+| `memory_list`        | List entries, filterable by category / path prefix, cursor-paginated   |
+| `memory_search`      | Full-text search over name, description and content                    |
+| `memory_delete`      | Soft delete                                                            |
 
 Paths look like `<category>/<name>.md`, where category is one of `you`, `topics`, `areas`, `people`, `sessions`. Every write requires `if_version`. A stale version is rejected, so two clients can't silently overwrite each other.
 
