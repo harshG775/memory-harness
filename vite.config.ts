@@ -6,7 +6,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defineConfig, lazyPlugins } from "vite-plus";
 
-const config = defineConfig({
+const config = defineConfig(({ mode }) => ({
     staged: {
         "*": "vp check --fix",
     },
@@ -26,7 +26,7 @@ const config = defineConfig({
     resolve: { tsconfigPaths: true },
     plugins: lazyPlugins(() => [
         devtools(),
-        cloudflare({ viteEnvironment: { name: "ssr" } }),
+        ...(mode === "test" ? [] : [cloudflare({ viteEnvironment: { name: "ssr" } })]),
         tailwindcss(),
         tanstackStart(),
         viteReact(),
@@ -35,6 +35,6 @@ const config = defineConfig({
     server: {
         allowedHosts: [".harshgaur.in"],
     },
-});
+}));
 
 export default config;
