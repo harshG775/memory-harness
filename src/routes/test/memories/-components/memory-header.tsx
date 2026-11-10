@@ -1,11 +1,12 @@
 import { RiBookOpenLine, RiDeleteBinLine, RiMore2Fill, RiPencilLine } from "@remixicon/react";
+
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import { DrawerDescription, DrawerHeader, DrawerTitle } from "#/components/ui/vaul-drawer";
+import { DrawerHeader } from "#/components/ui/vaul-drawer";
 import { formatBytes, formatRelativeTime } from "#/lib/formatter";
 
 type MemoryHeaderProps = {
@@ -25,14 +26,14 @@ export function MemoryHeader({ memory, isEditing, onToggleEditing, onDelete }: M
     return (
         <DrawerHeader className="flex-row justify-between items-center">
             <div>
-                <DrawerTitle className="text-left">{path || "Untitled"}</DrawerTitle>
-                <DrawerDescription className="text-left">
+                <h2 className="text-left font-heading text-base font-medium text-foreground">{path || "Untitled"}</h2>
+                <p className="text-left text-sm text-muted-foreground">
                     <span>v{version}</span>
                     <span>&middot;</span>
                     <span>{formatBytes(sizeBytes)}</span>
                     <span>&middot;</span>
                     <span>Updated {formatRelativeTime(new Date(updatedAt))}</span>
-                </DrawerDescription>
+                </p>
             </div>
             <div className="flex items-center gap-1">
                 <button
